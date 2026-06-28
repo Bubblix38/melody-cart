@@ -13,7 +13,7 @@ import "@fontsource/sora/500.css";
 import "@fontsource/sora/600.css";
 import "@fontsource/sora/700.css";
 import "@fontsource/sora/800.css";
-import "@fontsource-variable/plus-jakarta-sans";
+import "@fontsource-variable/plus-jakarta-sans/index.css";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
