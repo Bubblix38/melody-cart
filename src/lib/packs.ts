@@ -7,6 +7,7 @@ export interface Pack {
   preco: number;
   descricao: string | null;
   imagem_url: string | null;
+  arquivo_url: string | null;
   destaque: boolean;
   created_at: string;
   updated_at: string;
@@ -18,6 +19,7 @@ export type PackInput = {
   preco: number;
   descricao: string | null;
   imagem_url: string | null;
+  arquivo_url: string | null;
   destaque: boolean;
 };
 

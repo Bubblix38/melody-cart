@@ -14,8 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      itens_pedido: {
+        Row: {
+          arquivo_url: string | null
+          created_at: string
+          genero: string
+          id: string
+          nome: string
+          pack_id: string | null
+          pedido_id: string
+          preco: number
+          quantidade: number
+        }
+        Insert: {
+          arquivo_url?: string | null
+          created_at?: string
+          genero?: string
+          id?: string
+          nome: string
+          pack_id?: string | null
+          pedido_id: string
+          preco?: number
+          quantidade?: number
+        }
+        Update: {
+          arquivo_url?: string | null
+          created_at?: string
+          genero?: string
+          id?: string
+          nome?: string
+          pack_id?: string | null
+          pedido_id?: string
+          preco?: number
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_pedido_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_pedido_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packs: {
         Row: {
+          arquivo_url: string | null
           created_at: string
           descricao: string | null
           destaque: boolean
@@ -27,6 +79,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arquivo_url?: string | null
           created_at?: string
           descricao?: string | null
           destaque?: boolean
@@ -38,6 +91,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arquivo_url?: string | null
           created_at?: string
           descricao?: string | null
           destaque?: boolean
@@ -46,6 +100,39 @@ export type Database = {
           imagem_url?: string | null
           nome?: string
           preco?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pedidos: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          status: string
+          stripe_session_id: string | null
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          status?: string
+          stripe_session_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          status?: string
+          stripe_session_id?: string | null
+          total?: number
           updated_at?: string
         }
         Relationships: []
