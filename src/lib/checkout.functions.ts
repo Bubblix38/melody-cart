@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const checkoutSchema = z.object({
   nome: z.string().trim().min(1, "Informe seu nome").max(120),
@@ -69,7 +70,6 @@ async function stripeRequest(path: string, method: "GET" | "POST", body?: Record
 export const createCheckout = createServerFn({ method: "POST" })
   .inputValidator((data) => checkoutSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
     // Authoritative pack data from DB (never trust client-supplied prices).
@@ -159,7 +159,6 @@ export interface PedidoResult {
 export const getPedido = createServerFn({ method: "GET" })
   .inputValidator((data) => idSchema.parse(data))
   .handler(async ({ data }): Promise<PedidoResult> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
     const { data: pedido, error } = await db

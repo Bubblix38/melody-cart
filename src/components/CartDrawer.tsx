@@ -40,7 +40,7 @@ export function CartDrawer() {
     }
     setLoading(true);
     try {
-      const { url } = await checkout({
+      const result = await checkout({
         data: {
           nome: parsed.data.nome,
           email: parsed.data.email,
@@ -48,7 +48,7 @@ export function CartDrawer() {
         },
       });
       // Redirect to Stripe Checkout (Pix / card).
-      window.location.href = url;
+      window.location.assign(result.url);
     } catch (err) {
       toast.error("Não foi possível iniciar o pagamento", {
         description: err instanceof Error ? err.message : undefined,
