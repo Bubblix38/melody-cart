@@ -125,6 +125,7 @@ function Admin() {
       preco: Number(form.preco) || 0,
       descricao: form.descricao?.trim() || null,
       imagem_url: form.imagem_url?.trim() || null,
+      arquivo_url: form.arquivo_url?.trim() || null,
     };
     if (editing) {
       updateMut.mutate({ id: editing.id, input: payload });
