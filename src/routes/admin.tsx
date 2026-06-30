@@ -112,6 +112,7 @@ function Admin() {
       preco: pack.preco,
       descricao: pack.descricao ?? "",
       imagem_url: pack.imagem_url ?? "",
+      arquivo_url: pack.arquivo_url ?? "",
       destaque: pack.destaque,
     });
     setShowForm(true);
