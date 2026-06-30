@@ -43,6 +43,7 @@ const emptyForm: PackInput = {
   preco: 0,
   descricao: "",
   imagem_url: "",
+  arquivo_url: "",
   destaque: false,
 };
 
