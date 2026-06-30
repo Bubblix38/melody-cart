@@ -235,6 +235,21 @@ function Admin() {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="arquivo">Link de download (entrega do produto)</Label>
+            <Input
+              id="arquivo"
+              value={form.arquivo_url ?? ""}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, arquivo_url: e.target.value }))
+              }
+              placeholder="https://... link do arquivo/pasta do pack"
+            />
+            <p className="text-xs text-muted-foreground">
+              Liberado ao comprador só após o pagamento confirmado.
+            </p>
+          </div>
+
           <div className="flex items-center gap-3">
             <Switch
               id="destaque"
