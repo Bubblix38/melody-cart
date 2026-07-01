@@ -47,14 +47,19 @@ export function CartDrawer() {
           items: items.map((i) => ({ id: i.id, quantidade: i.quantidade })),
         },
       });
-      // Go to Stripe Checkout (Pix / card). Break out of the Lovable preview
-      // iframe (Stripe refuses to be framed) by targeting the top window;
-      // fall back to a new tab when the top window isn't reachable.
-      const top = window.top ?? window;
+      // Go to Stripe Checkout (Pix / card). Stripe refuses to be framed, so we
+      // must leave the Lovable preview iframe. Setting `location.href` on the
+      // top window is allowed even cross-origin (unlike `.assign()`, which
+      // throws); fall back to a new tab if that isn't possible.
+      const url = result.url;
       try {
-        top.location.assign(result.url);
+        if (window.top && window.top !== window.self) {
+          window.top.location.href = url;
+        } else {
+          window.location.href = url;
+        }
       } catch {
-        window.open(result.url, "_blank", "noopener,noreferrer");
+        window.open(url, "_blank", "noopener,noreferrer");
       }
     } catch (err) {
       toast.error("Não foi possível iniciar o pagamento", {
