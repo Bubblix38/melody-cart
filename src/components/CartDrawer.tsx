@@ -47,8 +47,15 @@ export function CartDrawer() {
           items: items.map((i) => ({ id: i.id, quantidade: i.quantidade })),
         },
       });
-      // Redirect to Stripe Checkout (Pix / card).
-      window.location.assign(result.url);
+      // Go to Stripe Checkout (Pix / card). Break out of the Lovable preview
+      // iframe (Stripe refuses to be framed) by targeting the top window;
+      // fall back to a new tab when the top window isn't reachable.
+      const top = window.top ?? window;
+      try {
+        top.location.assign(result.url);
+      } catch {
+        window.open(result.url, "_blank", "noopener,noreferrer");
+      }
     } catch (err) {
       toast.error("Não foi possível iniciar o pagamento", {
         description: err instanceof Error ? err.message : undefined,
