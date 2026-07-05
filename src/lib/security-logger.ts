@@ -46,7 +46,7 @@ export async function logSecurityEvent(
   try {
     const geo = await captureGeolocation();
     
-    await supabase.from("security_logs").insert({
+    await (supabase as any).from("security_logs").insert({
       action,
       ip_address: geo?.ip || "Desconhecido",
       geolocation: geo,

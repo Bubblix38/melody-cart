@@ -13,14 +13,14 @@ export function SecurityLogsViewer() {
   const { data: logs, isLoading } = useQuery({
     queryKey: ["security_logs"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("security_logs")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100);
       
       if (error) throw error;
-      return data;
+      return data as any[];
     },
     // Poll every 30 seconds for live attacks
     refetchInterval: 30000, 
@@ -30,7 +30,7 @@ export function SecurityLogsViewer() {
     return <div className="p-4 text-center text-muted-foreground">Carregando logs de segurança...</div>;
   }
 
-  const filteredLogs = logs?.filter(log => 
+  const filteredLogs = (logs || []).filter((log: any) => 
     log.ip_address?.includes(searchTerm) || 
     log.action?.includes(searchTerm) ||
     JSON.stringify(log.geolocation)?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -72,7 +72,7 @@ export function SecurityLogsViewer() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredLogs?.map((log) => (
+                {filteredLogs.map((log: any) => (
                   <tr key={log.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap text-xs">
                       {format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
