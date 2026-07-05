@@ -37,12 +37,15 @@ export const Route = createFileRoute("/")({
     if (import.meta.env.DEV) {
       console.error("Erro ao carregar packs:", error);
     }
+    const sbUrl = import.meta.env.VITE_SUPABASE_URL || "undefined";
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center" role="alert">
         <p className="text-muted-foreground text-white/60">Não foi possível carregar os packs.</p>
-        {import.meta.env.DEV && (
-          <p className="mt-2 text-xs text-muted-foreground text-white/40">{error.message}</p>
-        )}
+        <p className="mt-2 text-xs text-red-400 font-mono">{String(error)}</p>
+        <p className="mt-4 text-xs text-white/40 font-mono">
+          URL: {sbUrl} <br/>
+          (If URL is missing https:// or has typos, it will cause Failed to fetch)
+        </p>
       </div>
     );
   },
