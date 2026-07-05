@@ -67,6 +67,24 @@ function Admin() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [sessionValid, setSessionValid] = useState(false);
+  const [deviceAuthorized, setDeviceAuthorized] = useState(true);
+
+  // Proteção extrema anti-invasor
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("admin_key") === "bubblix_master_2026") {
+      localStorage.setItem("ADMIN_DEVICE_AUTHORIZED", "true");
+      // Limpa a URL para esconder a chave
+      window.history.replaceState({}, document.title, window.location.pathname);
+      toast.success("Dispositivo autorizado!");
+    } else if (localStorage.getItem("ADMIN_DEVICE_AUTHORIZED") !== "true") {
+      setDeviceAuthorized(false);
+      logSecurityEvent("admin_access_denied", { note: "Acesso direto à rota /admin sem autorização prévia" });
+      localStorage.setItem("HONEYPOT_BANNED", "true");
+      document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%'>PERMANENT BAN</h1>";
+      window.location.href = "https://www.fbi.gov/investigate/cyber";
+    }
+  }, []);
 
   // Hooks devem estar no topo, antes de qualquer early return
   const { data: packs = [], isLoading } = useQuery({
@@ -294,6 +312,10 @@ function Admin() {
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate({ to: "/" });
+  }
+
+  if (!deviceAuthorized) {
+    return null; // O invasor será redirecionado pelo useEffect
   }
 
   if (authLoading) {
