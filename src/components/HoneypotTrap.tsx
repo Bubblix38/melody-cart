@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Terminal } from "lucide-react";
+import { logSecurityEvent } from "@/lib/security-logger";
 
 export function HoneypotTrap({ pathName }: { pathName: string }) {
   const [text, setText] = useState("");
@@ -8,6 +9,12 @@ export function HoneypotTrap({ pathName }: { pathName: string }) {
   useEffect(() => {
     // Marca o intruso para sempre no armazenamento local do navegador dele
     localStorage.setItem("HONEYPOT_BANNED", "true");
+    
+    // Registra a invasão no banco de dados via RPC/Log
+    logSecurityEvent("honeypot_triggered", { 
+      route: pathName, 
+      userAgent: navigator.userAgent 
+    });
 
     let index = 0;
     const interval = setInterval(() => {

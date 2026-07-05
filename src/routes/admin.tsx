@@ -22,6 +22,8 @@ import { setCsrfToken, getCsrfToken, validateCsrfToken } from "@/lib/csrf";
 import { useSessionSecurity } from "@/lib/session-security";
 import { multiSessionManager } from "@/lib/multi-session-manager";
 import { AdminTrackManager } from "@/components/AdminTrackManager";
+import { SecurityLogsViewer } from "@/components/SecurityLogsViewer";
+import { logSecurityEvent } from "@/lib/security-logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -260,7 +262,8 @@ function Admin() {
 
     if (error) {
       setLoginError(error.message);
-      // Registrar tentativa falha (feito no backend)
+      // Registrar tentativa falha de login (Rate Limit e Auditoria)
+      logSecurityEvent("login_failed", { email });
     } else if (data.session?.user) {
       // Login bem-sucedido - gerar fingerprint
       const { generateFingerprint } = await import("@/lib/session-security");
@@ -399,6 +402,10 @@ function Admin() {
             Novo Pack
           </Button>
         </div>
+      </div>
+
+      <div className="mt-8 mb-12">
+        <SecurityLogsViewer />
       </div>
 
       {showForm && (

@@ -17,6 +17,7 @@ import "@fontsource-variable/plus-jakarta-sans/index.css";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { logSecurityEvent } from "@/lib/security-logger";
 import { CartProvider } from "@/lib/cart";
 import { BackgroundThemeProvider } from "@/lib/background-theme";
 import { AudioPlayerProvider } from "@/lib/audio-player";
@@ -111,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         httpEquiv: "Content-Security-Policy",
         content:
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https://zcznaozaosciiffqncjo.supabase.co; connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co;",
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https://zcznaozaosciiffqncjo.supabase.co https://nwsjgacmraijqyvvghoh.supabase.co; connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co https://nwsjgacmraijqyvvghoh.supabase.co wss://nwsjgacmraijqyvvghoh.supabase.co https://ipapi.co;",
       },
     ],
     links: [
@@ -148,6 +149,7 @@ function RootComponent() {
   useEffect(() => {
     const stopProtection = startProtection();
     if (localStorage.getItem("HONEYPOT_BANNED") === "true") {
+      logSecurityEvent("honeypot_triggered", { note: "Usuário bloqueado permanentemente retornou" });
       document.body.innerHTML =
         "<h1 style='color:red; text-align:center; margin-top:20%'>PERMANENT BAN</h1>";
       window.location.href = "https://www.fbi.gov/investigate/cyber";
