@@ -1,0 +1,9 @@
+id,nome,genero,preco,descricao,imagem_url,destaque,created_at,updated_at
+a3112cb3-cf37-43f9-93eb-7e35b5c40482,Pack Pop Vibes,Pop,29.9,Os maiores sucessos pop do momento em um só pack.,,true,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+7f4c9cfe-78f4-4a30-8612-d462cfacf00b,Pack Rock Classics,Rock,34.9,Clássicos do rock que marcaram gerações.,,true,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+1dea6f0d-b2f4-4380-91a6-3eb4f1d91649,Pack Sertanejo Hits,Sertanejo,32.9,O melhor do sertanejo universitário e raiz.,,true,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+63c9f870-c341-4e84-88de-119d426ffc4a,Pack Eletrônica Beats,Eletrônica,27.9,Batidas eletrônicas para agitar qualquer pista.,,true,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+a68c7216-1c8c-4341-98ae-7af98e930af3,Pack Pop Internacional,Pop,31.9,Hits internacionais que dominam as paradas.,,false,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+0a94f873-21e3-46e1-bd8f-927bfff32892,Pack Rock Nacional,Rock,28.9,O melhor do rock brasileiro em uma coletânea.,,false,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+a8319374-0dfb-4e98-aa30-ae36421ec896,Pack Sertanejo Romântico,Sertanejo,30.9,Modão e sofrência para emocionar.,,false,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00
+92dad0ad-8f53-4d43-8cf9-09e983d606b2,Pack Festival EDM,Eletrônica,35.9,Os drops mais aguardados dos festivais.,,false,2026-06-28T06:37:31.499403+00:00,2026-06-28T06:37:31.499403+00:00

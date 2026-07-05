@@ -1,0 +1,90 @@
+[
+  {
+    "id": "a3112cb3-cf37-43f9-93eb-7e35b5c40482",
+    "nome": "Pack Pop Vibes",
+    "genero": "Pop",
+    "preco": 29.9,
+    "descricao": "Os maiores sucessos pop do momento em um só pack.",
+    "imagem_url": null,
+    "destaque": true,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "7f4c9cfe-78f4-4a30-8612-d462cfacf00b",
+    "nome": "Pack Rock Classics",
+    "genero": "Rock",
+    "preco": 34.9,
+    "descricao": "Clássicos do rock que marcaram gerações.",
+    "imagem_url": null,
+    "destaque": true,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "1dea6f0d-b2f4-4380-91a6-3eb4f1d91649",
+    "nome": "Pack Sertanejo Hits",
+    "genero": "Sertanejo",
+    "preco": 32.9,
+    "descricao": "O melhor do sertanejo universitário e raiz.",
+    "imagem_url": null,
+    "destaque": true,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "63c9f870-c341-4e84-88de-119d426ffc4a",
+    "nome": "Pack Eletrônica Beats",
+    "genero": "Eletrônica",
+    "preco": 27.9,
+    "descricao": "Batidas eletrônicas para agitar qualquer pista.",
+    "imagem_url": null,
+    "destaque": true,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "a68c7216-1c8c-4341-98ae-7af98e930af3",
+    "nome": "Pack Pop Internacional",
+    "genero": "Pop",
+    "preco": 31.9,
+    "descricao": "Hits internacionais que dominam as paradas.",
+    "imagem_url": null,
+    "destaque": false,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "0a94f873-21e3-46e1-bd8f-927bfff32892",
+    "nome": "Pack Rock Nacional",
+    "genero": "Rock",
+    "preco": 28.9,
+    "descricao": "O melhor do rock brasileiro em uma coletânea.",
+    "imagem_url": null,
+    "destaque": false,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "a8319374-0dfb-4e98-aa30-ae36421ec896",
+    "nome": "Pack Sertanejo Romântico",
+    "genero": "Sertanejo",
+    "preco": 30.9,
+    "descricao": "Modão e sofrência para emocionar.",
+    "imagem_url": null,
+    "destaque": false,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  },
+  {
+    "id": "92dad0ad-8f53-4d43-8cf9-09e983d606b2",
+    "nome": "Pack Festival EDM",
+    "genero": "Eletrônica",
+    "preco": 35.9,
+    "descricao": "Os drops mais aguardados dos festivais.",
+    "imagem_url": null,
+    "destaque": false,
+    "created_at": "2026-06-28T06:37:31.499403+00:00",
+    "updated_at": "2026-06-28T06:37:31.499403+00:00"
+  }
+]

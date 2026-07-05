@@ -25,7 +25,6 @@ export function PackCard({ pack }: { pack: Pack }) {
         <img
           src={packImage(pack.imagem_url, pack.genero)}
           alt={pack.nome}
-          loading="lazy"
           width={768}
           height={768}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -43,15 +42,11 @@ export function PackCard({ pack }: { pack: Pack }) {
         <div>
           <h3 className="font-bold leading-tight">{pack.nome}</h3>
           {pack.descricao && (
-            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-              {pack.descricao}
-            </p>
+            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{pack.descricao}</p>
           )}
         </div>
         <div className="mt-auto flex items-center justify-between gap-2">
-          <span className="text-xl font-extrabold text-gradient">
-            {formatPreco(pack.preco)}
-          </span>
+          <span className="text-xl font-extrabold text-gradient">{formatPreco(pack.preco)}</span>
           <Button
             onClick={handleAdd}
             size="sm"

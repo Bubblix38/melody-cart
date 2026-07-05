@@ -1,171 +1,205 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { fetchPacks } from "@/lib/packs";
-import { PackCard } from "@/components/PackCard";
+import { Radio, Share2 } from "lucide-react";
+import { fetchPacks, GENEROS } from "@/lib/packs";
+import { SoundCloudHero } from "@/components/SoundCloudHero";
+import { TrackRowSoundCloud } from "@/components/TrackRowSoundCloud";
+import { SoundCloudSidebar } from "@/components/SoundCloudSidebar";
+import { PopularRanking } from "@/components/PopularRanking";
 import { Button } from "@/components/ui/button";
-import heroImg from "@/assets/hero-music.jpg";
-import { popImg, rockImg, sertanejoImg, eletronicaImg } from "@/lib/pack-images";
+import { cn } from "@/lib/utils";
 
 const packsQuery = queryOptions({
   queryKey: ["packs"],
   queryFn: fetchPacks,
 });
 
+type HomeSearch = { aba?: string; genero?: string };
+
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): HomeSearch => ({
+    aba: typeof search.aba === "string" ? search.aba : undefined,
+    genero: typeof search.genero === "string" ? search.genero : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "TopDJ — Descubra e Compre os Melhores Álbuns" },
       {
         name: "description",
         content:
-          "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Pop, Rock, Sertanejo e Eletrônica. Pagamento seguro.",
+          "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro.",
       },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(packsQuery),
+  loader: ({ context }) => (context as any).queryClient.ensureQueryData(packsQuery),
   component: Index,
-  errorComponent: ({ error }) => (
-    <div className="mx-auto max-w-7xl px-4 py-20 text-center" role="alert">
-      <p className="text-muted-foreground">Não foi possível carregar os packs.</p>
-      <p className="mt-2 text-xs text-muted-foreground">{error.message}</p>
-    </div>
-  ),
+  errorComponent: ({ error }) => {
+    if (import.meta.env.DEV) {
+      console.error("Erro ao carregar packs:", error);
+    }
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-20 text-center" role="alert">
+        <p className="text-muted-foreground text-white/60">Não foi possível carregar os packs.</p>
+        {import.meta.env.DEV && (
+          <p className="mt-2 text-xs text-muted-foreground text-white/40">{error.message}</p>
+        )}
+      </div>
+    );
+  },
 });
 
-const generos = [
-  { nome: "Pop Hits", img: popImg, to: "Pop" },
-  { nome: "Rock Hits", img: rockImg, to: "Rock" },
-  { nome: "Sertanejo Hits", img: sertanejoImg, to: "Sertanejo" },
-  { nome: "Eletrônica Hits", img: eletronicaImg, to: "Eletrônica" },
+const TABS = [
+  { id: "todas", label: "Todas" },
+  { id: "populares", label: "Faixas populares" },
+  { id: "albuns", label: "Álbuns" },
 ] as const;
 
 function Index() {
   const { data: packs } = useSuspenseQuery(packsQuery);
-  const destaques = packs.filter((p) => p.destaque).slice(0, 4);
-  const lista = destaques.length > 0 ? destaques : packs.slice(0, 4);
+  const { aba, genero } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const abaAtiva = aba ?? "todas";
+
+  function setAba(novaAba: string) {
+    navigate({ search: (prev) => ({ ...prev, aba: novaAba === "todas" ? undefined : novaAba }) });
+  }
+
+  function setGenero(g?: string) {
+    navigate({ search: (prev) => ({ ...prev, genero: g }) });
+  }
+
+  // Logic to find a good spotlight pack
+  const packsFiltrados = genero ? packs.filter((p) => p.genero === genero) : packs;
+  const spotlightPack = packsFiltrados.find((p) => p.destaque) || packsFiltrados[0];
+  const recentPacks = packsFiltrados.filter((p) => p.id !== spotlightPack?.id);
 
   return (
-    <div>
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <img
-          src={heroImg}
-          alt=""
-          aria-hidden
-          width={1280}
-          height={960}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[image:var(--gradient-hero)] opacity-80" />
-        <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-2xl text-primary-foreground"
-          >
-            <h1 className="text-4xl font-extrabold leading-[1.05] sm:text-6xl">
-              Descubra e Compre os{" "}
-              <span className="bg-gradient-to-r from-[oklch(0.85_0.12_60)] to-[oklch(0.8_0.13_350)] bg-clip-text text-transparent">
-                Melhores Álbuns!
-              </span>
-            </h1>
-            <p className="mt-5 max-w-lg text-lg text-primary-foreground/90">
-              Encontre os lançamentos e sucessos de todos os gêneros musicais em
-              packs exclusivos.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button
-                asChild
-                size="lg"
-                className="h-13 bg-[image:var(--gradient-primary)] px-8 text-base font-bold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90"
+    <div className="min-h-screen text-white selection:bg-primary/30">
+      {/* Profile Hero Section */}
+      <SoundCloudHero />
+
+      {/* Sticky Navigation Tabs Bar */}
+      <div className="sticky top-14 z-40 bg-background/95 backdrop-blur-md pt-4 max-w-[1440px] mx-auto px-6 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setAba(tab.id)}
+                className={cn(
+                  "pb-4 border-b-2 font-bold text-base md:text-lg whitespace-nowrap transition-all",
+                  abaAtiva === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-white/40 hover:text-white font-medium",
+                )}
               >
-                <Link to="/loja">
-                  Explorar Álbuns
-                  <ArrowRight className="ml-1 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* TOP HITS POR GÊNERO */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-center gap-4">
-          <span className="h-px flex-1 bg-border" />
-          <h2 className="text-center text-2xl font-bold sm:text-3xl">
-            Top Hits por <span className="text-gradient">Gênero</span>
-          </h2>
-          <span className="h-px flex-1 bg-border" />
-        </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {generos.map((g) => (
-            <Link
-              key={g.nome}
-              to="/loja"
-              search={{ genero: g.to }}
-              className="group relative aspect-[5/3] overflow-hidden rounded-2xl shadow-[var(--shadow-card)]"
-            >
-              <img
-                src={g.img}
-                alt={g.nome}
-                loading="lazy"
-                width={768}
-                height={768}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 to-transparent" />
-              <span className="absolute bottom-3 left-4 text-lg font-bold text-white">
-                {g.nome}
-              </span>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-8 flex justify-center">
-          <Button asChild variant="secondary" className="font-semibold">
-            <Link to="/mais-ouvidas">Ver Ranking Completo</Link>
-          </Button>
-        </div>
-      </section>
-
-      {/* LOJA DE ÁLBUNS */}
-      <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold sm:text-3xl">
-              Loja de <span className="text-gradient">Álbuns</span>
-            </h2>
-            <p className="mt-1 text-muted-foreground">Packs de álbuns em oferta.</p>
+                {tab.label}
+              </button>
+            ))}
           </div>
-          <PaymentBadges />
+          <div className="pb-4 hidden md:flex items-center gap-4">
+            <Button variant="secondary" className="px-6 h-9 font-bold rounded-sm bg-white text-black hover:bg-white/90 shadow-lg">Estação</Button>
+            <Button variant="outline" className="px-6 h-9 border-white/20 text-white font-bold rounded-sm hover:bg-white/5 transition-all">Compartilhar</Button>
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {lista.map((pack) => (
-            <PackCard key={pack.id} pack={pack} />
-          ))}
-        </div>
-        <div className="mt-8 flex justify-center">
-          <Button asChild size="lg" variant="outline" className="font-semibold">
-            <Link to="/loja">
-              Ver todos os packs
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </section>
+      </div>
+
+      {abaAtiva === "populares" ? (
+        /* Aba Faixas Populares: ranking real de mais ouvidas */
+        <main className="max-w-4xl mx-auto px-4 md:px-6 py-10">
+          <PopularRanking showHeader={false} />
+        </main>
+      ) : (
+        /* Main Content Layout */
+        <main className="max-w-[1440px] mx-auto px-4 md:px-6 py-10 grid grid-cols-12 gap-8 md:gap-10">
+
+          {/* Main Feed Column */}
+          <div className="col-span-12 lg:col-span-8 space-y-10">
+
+            {/* Filtro por gênero (trazido da Biblioteca) */}
+            <div className="flex flex-wrap gap-2 border-b border-white/10 pb-4">
+              <GenreChip active={!genero} onClick={() => setGenero(undefined)}>
+                Todos os gêneros
+              </GenreChip>
+              {GENEROS.map((g) => (
+                <GenreChip key={g} active={genero === g} onClick={() => setGenero(g)}>
+                  {g}
+                </GenreChip>
+              ))}
+            </div>
+
+            {/* Featured Spotlight Track */}
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-2xl font-bold text-white tracking-tight">Destaques</h2>
+                <button className="text-sm font-semibold text-white/40 hover:text-primary transition-colors">Editar Destaques</button>
+              </div>
+
+              {spotlightPack ? (
+                <TrackRowSoundCloud pack={spotlightPack} variant="spotlight" />
+              ) : (
+                <div className="p-12 border border-dashed border-white/10 rounded-xl text-center text-white/20 font-bold uppercase tracking-widest">
+                  Nenhum destaque disponível
+                </div>
+              )}
+            </section>
+
+            {/* Recent Uploads List */}
+            <section className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-3xl font-bold text-white tracking-tight">Recente</h2>
+                <a href="#" className="text-sm font-semibold text-white/40 hover:text-white transition-colors">Ver histórico</a>
+              </div>
+
+              <div className="space-y-8">
+                {recentPacks.length > 0 ? (
+                  recentPacks.map((pack) => (
+                    <TrackRowSoundCloud key={pack.id} pack={pack} variant="regular" />
+                  ))
+                ) : (
+                  <div className="py-20 text-center text-white/20 font-bold uppercase tracking-widest">
+                    Nenhuma faixa recente encontrada
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Sidebar Column */}
+          <SoundCloudSidebar />
+
+        </main>
+      )}
+
+      {/* Mobile Station/Share buttons */}
+      <div className="md:hidden fixed bottom-20 right-4 flex flex-col gap-2 z-40">
+        <Button size="icon" className="rounded-full bg-white text-black shadow-2xl"><Radio className="h-5 w-5" /></Button>
+        <Button size="icon" variant="outline" className="rounded-full bg-background/80 backdrop-blur-md border-white/20 text-white shadow-2xl"><Share2 className="h-5 w-5" /></Button>
+      </div>
     </div>
   );
 }
 
-function PaymentBadges() {
+function GenreChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-2.5">
-      <span className="text-sm font-bold text-[oklch(0.55_0.13_180)]">Pix</span>
-      <span className="text-sm font-bold italic text-[oklch(0.45_0.15_265)]">VISA</span>
-      <span className="text-sm font-bold text-[oklch(0.6_0.2_30)]">Mastercard</span>
-    </div>
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-4 py-2 text-sm font-bold rounded-full transition-all border",
+        active
+          ? "bg-primary text-primary-foreground border-primary"
+          : "text-white/50 border-white/10 hover:text-white hover:border-white/30",
+      )}
+    >
+      {children}
+    </button>
   );
 }

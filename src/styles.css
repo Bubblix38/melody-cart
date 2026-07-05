@@ -94,9 +94,19 @@
   --sidebar-border: oklch(0.9 0.015 300);
   --sidebar-ring: oklch(0.6 0.25 0);
 
-  --gradient-hero: linear-gradient(120deg, oklch(0.45 0.2 290) 0%, oklch(0.55 0.25 350) 45%, oklch(0.68 0.2 40) 100%);
+  --gradient-hero: linear-gradient(
+    120deg,
+    oklch(0.45 0.2 290) 0%,
+    oklch(0.55 0.25 350) 45%,
+    oklch(0.68 0.2 40) 100%
+  );
   --gradient-primary: linear-gradient(135deg, oklch(0.6 0.25 0) 0%, oklch(0.72 0.18 50) 100%);
-  --gradient-brand: linear-gradient(135deg, oklch(0.55 0.22 290) 0%, oklch(0.6 0.25 0) 60%, oklch(0.72 0.18 50) 100%);
+  --gradient-brand: linear-gradient(
+    135deg,
+    oklch(0.55 0.22 290) 0%,
+    oklch(0.6 0.25 0) 60%,
+    oklch(0.72 0.18 50) 100%
+  );
   --shadow-card: 0 10px 30px -12px oklch(0.55 0.25 350 / 0.35);
   --shadow-glow: 0 0 40px -8px oklch(0.6 0.25 350 / 0.5);
 }
@@ -131,6 +141,237 @@
   --sidebar-ring: oklch(0.68 0.24 355);
 }
 
+/* ============================================================
+   Cena de fundo 3D escolhível pelo visitante
+   Camada fixa, atrás de todo o conteúdo (z-index -1), controlada
+   via atributo data-bg-theme no <html>.
+   ============================================================ */
+
+.bg-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--color-background);
+  perspective: 700px;
+}
+
+.bg-scene__sky,
+.bg-scene__horizon-glow,
+.bg-scene__grid-floor,
+.bg-scene__nebula-orb,
+.bg-scene__stars,
+.bg-scene__holo-sheen,
+.bg-scene__holo-scanlines {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Tema: Grade Cyberpunk ---------- */
+html[data-bg-theme="grid"] .bg-scene__sky {
+  opacity: 1;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0118 0%, #1a0733 45%, #2a0845 62%, #0a0118 100%);
+}
+
+html[data-bg-theme="grid"] .bg-scene__horizon-glow {
+  opacity: 1;
+  left: 50%;
+  bottom: 42%;
+  width: 140vw;
+  height: 40vh;
+  transform: translateX(-50%) translateZ(0);
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, #ff2ea6 0%, #7c3aed 35%, transparent 75%);
+  filter: blur(20px);
+  will-change: opacity;
+  animation: bg-pulse-glow 6s ease-in-out infinite;
+}
+
+html[data-bg-theme="grid"] .bg-scene__grid-floor {
+  opacity: 1;
+  left: 50%;
+  bottom: -10%;
+  width: 220vw;
+  height: 120vh;
+  transform: translateX(-50%) rotateX(75deg);
+  transform-origin: 50% 0%;
+  background-image:
+    linear-gradient(90deg, rgba(255, 46, 166, 0.55) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 46, 166, 0.55) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: linear-gradient(to top, black 0%, transparent 60%);
+  mask-image: linear-gradient(to top, black 0%, transparent 60%);
+  will-change: transform;
+  animation: bg-grid-scroll 4s linear infinite;
+}
+
+/* Equalizador animado (indicador de "tocando agora" nas listas de faixas) */
+@keyframes wave {
+  0%,
+  100% {
+    height: 30%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+@keyframes bg-grid-scroll {
+  from {
+    transform: translateX(-50%) translateY(0) rotateX(75deg);
+  }
+  to {
+    transform: translateX(-50%) translateY(60px) rotateX(75deg);
+  }
+}
+
+@keyframes bg-pulse-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------- Tema: Nebulosa 3D ---------- */
+html[data-bg-theme="nebula"] .bg-scene__sky {
+  opacity: 1;
+  inset: 0;
+  background: #05040d;
+}
+
+html[data-bg-theme="nebula"] .bg-scene__stars {
+  opacity: 0.8;
+  inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, white, transparent),
+    radial-gradient(1.5px 1.5px at 70% 15%, white, transparent),
+    radial-gradient(1px 1px at 40% 70%, white, transparent),
+    radial-gradient(1.5px 1.5px at 85% 55%, white, transparent),
+    radial-gradient(1px 1px at 10% 85%, white, transparent),
+    radial-gradient(1.5px 1.5px at 55% 90%, white, transparent),
+    radial-gradient(1px 1px at 90% 80%, white, transparent);
+  background-repeat: repeat;
+  background-size: 100% 100%;
+}
+
+html[data-bg-theme="nebula"] .bg-scene__nebula-orb {
+  opacity: 0.55;
+  width: 55vw;
+  height: 55vw;
+  border-radius: 50%;
+  filter: blur(60px);
+  will-change: transform;
+}
+
+html[data-bg-theme="nebula"] .bg-scene__nebula-orb--1 {
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, #7c3aed, transparent 70%);
+  animation: bg-orb-float-a 16s ease-in-out infinite;
+}
+
+html[data-bg-theme="nebula"] .bg-scene__nebula-orb--2 {
+  top: 20%;
+  right: -15%;
+  background: radial-gradient(circle, #06b6d4, transparent 70%);
+  animation: bg-orb-float-b 20s ease-in-out infinite;
+}
+
+html[data-bg-theme="nebula"] .bg-scene__nebula-orb--3 {
+  bottom: -20%;
+  left: 20%;
+  background: radial-gradient(circle, #ff2ea6, transparent 70%);
+  animation: bg-orb-float-c 24s ease-in-out infinite;
+}
+
+@keyframes bg-orb-float-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6vw, 8vh) scale(1.15);
+  }
+}
+
+@keyframes bg-orb-float-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-8vw, 6vh) scale(1.1);
+  }
+}
+
+@keyframes bg-orb-float-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(5vw, -7vh) scale(1.2);
+  }
+}
+
+/* ---------- Tema: Holográfico ---------- */
+html[data-bg-theme="holo"] .bg-scene__sky {
+  opacity: 1;
+  inset: 0;
+  background: #08060f;
+}
+
+html[data-bg-theme="holo"] .bg-scene__holo-sheen {
+  opacity: 0.5;
+  top: -20%;
+  left: -60%;
+  width: 220%;
+  height: 140%;
+  background: linear-gradient(
+    115deg,
+    #ff2ea6 0%,
+    #7c3aed 22%,
+    #06b6d4 44%,
+    #22d3ee 60%,
+    #7c3aed 78%,
+    #ff2ea6 100%
+  );
+  filter: blur(80px) saturate(1.4);
+  will-change: transform;
+  animation: bg-holo-shift 14s ease-in-out infinite;
+}
+
+html[data-bg-theme="holo"] .bg-scene__holo-scanlines {
+  opacity: 0.1;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.5) 0px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+@keyframes bg-holo-shift {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-15%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-scene * {
+    animation: none !important;
+  }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -140,17 +381,44 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    background-attachment: fixed;
   }
 
-  h1, h2, h3, h4, h5 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
     font-family: var(--font-display);
   }
 }
 
 @utility text-gradient {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+@utility glass-nav {
+    background: rgba(26, 26, 36, 0.8);
+    backdrop-filter: blur(12px);
+  }
+
+@utility player-gradient {
+    background: linear-gradient(180deg, rgba(26,26,36,0) 0%, rgba(26,26,36,1) 100%);
+  }
+
+@utility custom-scrollbar {
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--color-background);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: oklch(0.3 0.03 295);
+      border-radius: 10px;
+    }
+  }

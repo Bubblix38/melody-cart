@@ -1,20 +1,20 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Pack } from "@/lib/packs";
+import type { Track } from "@/lib/tracks";
+import { setSecureItem, getSecureItem, removeSecureItem } from "@/lib/secure-storage";
+import { refreshCartPrices } from "@/lib/price-protection";
 
 export interface CartItem {
+  /** Para itens do tipo "pack", id do pack. Para "track", id da própria faixa. */
   id: string;
+  tipo: "pack" | "track";
   nome: string;
   preco: number;
   genero: string;
   imagem_url: string | null;
   quantidade: number;
+  /** Preenchido apenas quando tipo === "track": id do pack ao qual a faixa pertence. */
+  packId?: string;
 }
 
 interface CartContextValue {
@@ -22,6 +22,7 @@ interface CartContextValue {
   isOpen: boolean;
   setOpen: (open: boolean) => void;
   addItem: (pack: Pack) => void;
+  addTrack: (track: Track, packInfo: { genero: string; imagem_url: string | null }) => void;
   removeItem: (id: string) => void;
   setQuantidade: (id: string, quantidade: number) => void;
   clear: () => void;
@@ -37,39 +38,73 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch {
-      /* ignore */
-    }
+    const loadCart = async () => {
+      try {
+        const items = await getSecureItem<CartItem[]>(STORAGE_KEY, []);
+        // Atualizar preços com valores do banco de dados
+        const refreshedItems = await refreshCartPrices(items);
+        setItems(refreshedItems);
+      } catch {
+        /* ignore */
+      }
+    };
+    loadCart();
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      /* ignore */
-    }
+    const saveCart = async () => {
+      try {
+        await setSecureItem(STORAGE_KEY, items);
+      } catch {
+        /* ignore */
+      }
+    };
+    saveCart();
   }, [items]);
 
   function addItem(pack: Pack) {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === pack.id);
+      const existing = prev.find((i) => i.id === pack.id && i.tipo === "pack");
       if (existing) {
         return prev.map((i) =>
-          i.id === pack.id ? { ...i, quantidade: i.quantidade + 1 } : i,
+          i.id === pack.id && i.tipo === "pack" ? { ...i, quantidade: i.quantidade + 1 } : i,
         );
       }
       return [
         ...prev,
         {
           id: pack.id,
+          tipo: "pack",
           nome: pack.nome,
           preco: pack.preco,
           genero: pack.genero,
           imagem_url: pack.imagem_url,
           quantidade: 1,
+        },
+      ];
+    });
+    setOpen(true);
+  }
+
+  function addTrack(track: Track, packInfo: { genero: string; imagem_url: string | null }) {
+    setItems((prev) => {
+      const existing = prev.find((i) => i.id === track.id && i.tipo === "track");
+      if (existing) {
+        return prev.map((i) =>
+          i.id === track.id && i.tipo === "track" ? { ...i, quantidade: i.quantidade + 1 } : i,
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: track.id,
+          tipo: "track",
+          nome: track.title,
+          preco: track.price,
+          genero: packInfo.genero,
+          imagem_url: packInfo.imagem_url,
+          quantidade: 1,
+          packId: track.pack_id,
         },
       ];
     });
@@ -85,29 +120,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem(id);
       return;
     }
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, quantidade } : i)),
-    );
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantidade } : i)));
   }
+  // Nota: ids são UUIDs gerados pelo banco, então colisão entre pack e track é
+  // praticamente impossível; usar apenas "id" aqui mantém a API simples.
 
   function clear() {
     setItems([]);
   }
 
-  const totalItens = useMemo(
-    () => items.reduce((acc, i) => acc + i.quantidade, 0),
-    [items],
-  );
-  const total = useMemo(
-    () => items.reduce((acc, i) => acc + i.quantidade * i.preco, 0),
-    [items],
-  );
+  const totalItens = useMemo(() => items.reduce((acc, i) => acc + i.quantidade, 0), [items]);
+  const total = useMemo(() => items.reduce((acc, i) => acc + i.quantidade * i.preco, 0), [items]);
 
   const value: CartContextValue = {
     items,
     isOpen,
     setOpen,
     addItem,
+    addTrack,
     removeItem,
     setQuantidade,
     clear,

@@ -85,7 +85,13 @@ function Contato() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="mensagem">Mensagem</Label>
-            <Textarea id="mensagem" name="mensagem" required rows={5} placeholder="Como podemos ajudar?" />
+            <Textarea
+              id="mensagem"
+              name="mensagem"
+              required
+              rows={5}
+              placeholder="Como podemos ajudar?"
+            />
           </div>
           <Button
             type="submit"

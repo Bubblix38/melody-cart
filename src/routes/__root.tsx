@@ -18,10 +18,14 @@ import "@fontsource-variable/plus-jakarta-sans/index.css";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "@/lib/cart";
+import { BackgroundThemeProvider } from "@/lib/background-theme";
+import { AudioPlayerProvider } from "@/lib/audio-player";
+import { useDevToolsProtection } from "@/lib/devtools-protection";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
 import { Toaster } from "@/components/ui/sonner";
+import { FixedPlayer } from "@/components/FixedPlayer";
+import { BackgroundScene } from "@/components/BackgroundScene";
 
 function NotFoundComponent() {
   return (
@@ -88,11 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "generator", content: "WordPress 6.4.1" },
       { title: "TopDJ — Packs de Música para Comprar" },
       {
         name: "description",
         content:
-          "Descubra e compre os melhores packs de música: Pop, Rock, Sertanejo e Eletrônica. Pagamento seguro e envio rápido na TopDJ.",
+          "Descubra e compre os melhores packs de música: Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro e envio rápido na TopDJ.",
       },
       { name: "author", content: "TopDJ" },
       { property: "og:title", content: "TopDJ — Packs de Música para Comprar" },
@@ -103,6 +108,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        httpEquiv: "Content-Security-Policy",
+        content:
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https://zcznaozaosciiffqncjo.supabase.co; connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co;",
+      },
     ],
     links: [
       {
@@ -119,11 +129,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className="dark">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="custom-scrollbar selection:bg-primary/30">
         {children}
         <Scripts />
       </body>
@@ -133,20 +143,38 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { startProtection } = useDevToolsProtection();
+
+  useEffect(() => {
+    const stopProtection = startProtection();
+    if (localStorage.getItem("HONEYPOT_BANNED") === "true") {
+      document.body.innerHTML =
+        "<h1 style='color:red; text-align:center; margin-top:20%'>PERMANENT BAN</h1>";
+      window.location.href = "https://www.fbi.gov/investigate/cyber";
+    }
+    return () => {
+      stopProtection();
+    };
+  }, [startProtection]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
-        <CartDrawer />
-        <Toaster position="top-center" richColors />
-      </CartProvider>
+      <BackgroundThemeProvider>
+        <AudioPlayerProvider>
+          <CartProvider>
+            <BackgroundScene />
+            <div className="flex min-h-screen flex-col pb-16">
+              <Header />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+            </div>
+            <CartDrawer />
+            <FixedPlayer />
+            <Toaster position="top-center" richColors theme="dark" />
+          </CartProvider>
+        </AudioPlayerProvider>
+      </BackgroundThemeProvider>
     </QueryClientProvider>
   );
 }

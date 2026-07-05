@@ -1,14 +1,14 @@
 import popImg from "@/assets/pack-pop.jpg";
 import rockImg from "@/assets/pack-rock.jpg";
-import sertanejoImg from "@/assets/pack-sertanejo.jpg";
-import eletronicaImg from "@/assets/pack-eletronica.jpg";
+// import sertanejoImg from "@/assets/pack-sertanejo.jpg";
+// import eletronicaImg from "@/assets/pack-eletronica.jpg";
 
 const GENERO_IMG: Record<string, string> = {
-  Pop: popImg,
+  Nacionais: popImg,
   Rock: rockImg,
-  Sertanejo: sertanejoImg,
-  "Eletrônica": eletronicaImg,
-  Eletronica: eletronicaImg,
+  Sertanejo: popImg, // fallback
+  Eletrônica: popImg, // fallback
+  Eletronica: popImg, // fallback
 };
 
 export function packImage(imagem_url: string | null, genero: string): string {
@@ -16,4 +16,4 @@ export function packImage(imagem_url: string | null, genero: string): string {
   return GENERO_IMG[genero] ?? popImg;
 }
 
-export { popImg, rockImg, sertanejoImg, eletronicaImg };
+export { popImg, rockImg };

@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-06-28T07:04:27.554Z",
+  "supabase_url": "https://nwsjgacmraijqyvvghoh.supabase.co",
+  "tables": [
+    {
+      "name": "CompositeTypes",
+      "rows": 0
+    },
+    {
+      "name": "Enums",
+      "rows": 0
+    },
+    {
+      "name": "Functions",
+      "rows": 0
+    },
+    {
+      "name": "Insert",
+      "rows": 0
+    },
+    {
+      "name": "Row",
+      "rows": 0
+    },
+    {
+      "name": "Update",
+      "rows": 0
+    },
+    {
+      "name": "Views",
+      "rows": 0
+    },
+    {
+      "name": "packs",
+      "rows": 8
+    }
+  ]
+}

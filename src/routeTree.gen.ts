@@ -9,13 +9,50 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WpLoginRouteImport } from './routes/wp-login'
+import { Route as WpAdminRouteImport } from './routes/wp-admin'
+import { Route as SucessoRouteImport } from './routes/sucesso'
+import { Route as PhpmyadminRouteImport } from './routes/phpmyadmin'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as MixerRouteImport } from './routes/mixer'
 import { Route as MaisOuvidasRouteImport } from './routes/mais-ouvidas'
 import { Route as LojaRouteImport } from './routes/loja'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContatoRouteImport } from './routes/contato'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PedidoIdRouteImport } from './routes/pedido.$id'
 
+const WpLoginRoute = WpLoginRouteImport.update({
+  id: '/wp-login',
+  path: '/wp-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WpAdminRoute = WpAdminRouteImport.update({
+  id: '/wp-admin',
+  path: '/wp-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SucessoRoute = SucessoRouteImport.update({
+  id: '/sucesso',
+  path: '/sucesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhpmyadminRoute = PhpmyadminRouteImport.update({
+  id: '/phpmyadmin',
+  path: '/phpmyadmin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MixerRoute = MixerRouteImport.update({
+  id: '/mixer',
+  path: '/mixer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MaisOuvidasRoute = MaisOuvidasRouteImport.update({
   id: '/mais-ouvidas',
   path: '/mais-ouvidas',
@@ -26,9 +63,19 @@ const LojaRoute = LojaRouteImport.update({
   path: '/loja',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContatoRoute = ContatoRouteImport.update({
   id: '/contato',
   path: '/contato',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -41,69 +88,161 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PedidoIdRoute = PedidoIdRouteImport.update({
-  id: '/pedido/$id',
-  path: '/pedido/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/checkout': typeof CheckoutRoute
   '/contato': typeof ContatoRoute
+  '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/mais-ouvidas': typeof MaisOuvidasRoute
-  '/pedido/$id': typeof PedidoIdRoute
+  '/mixer': typeof MixerRoute
+  '/perfil': typeof PerfilRoute
+  '/phpmyadmin': typeof PhpmyadminRoute
+  '/sucesso': typeof SucessoRoute
+  '/wp-admin': typeof WpAdminRoute
+  '/wp-login': typeof WpLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/checkout': typeof CheckoutRoute
   '/contato': typeof ContatoRoute
+  '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/mais-ouvidas': typeof MaisOuvidasRoute
-  '/pedido/$id': typeof PedidoIdRoute
+  '/mixer': typeof MixerRoute
+  '/perfil': typeof PerfilRoute
+  '/phpmyadmin': typeof PhpmyadminRoute
+  '/sucesso': typeof SucessoRoute
+  '/wp-admin': typeof WpAdminRoute
+  '/wp-login': typeof WpLoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/checkout': typeof CheckoutRoute
   '/contato': typeof ContatoRoute
+  '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/mais-ouvidas': typeof MaisOuvidasRoute
-  '/pedido/$id': typeof PedidoIdRoute
+  '/mixer': typeof MixerRoute
+  '/perfil': typeof PerfilRoute
+  '/phpmyadmin': typeof PhpmyadminRoute
+  '/sucesso': typeof SucessoRoute
+  '/wp-admin': typeof WpAdminRoute
+  '/wp-login': typeof WpLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+    | '/checkout'
     | '/contato'
+    | '/login'
     | '/loja'
     | '/mais-ouvidas'
-    | '/pedido/$id'
+    | '/mixer'
+    | '/perfil'
+    | '/phpmyadmin'
+    | '/sucesso'
+    | '/wp-admin'
+    | '/wp-login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/contato' | '/loja' | '/mais-ouvidas' | '/pedido/$id'
+  to:
+    | '/'
+    | '/admin'
+    | '/checkout'
+    | '/contato'
+    | '/login'
+    | '/loja'
+    | '/mais-ouvidas'
+    | '/mixer'
+    | '/perfil'
+    | '/phpmyadmin'
+    | '/sucesso'
+    | '/wp-admin'
+    | '/wp-login'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/checkout'
     | '/contato'
+    | '/login'
     | '/loja'
     | '/mais-ouvidas'
-    | '/pedido/$id'
+    | '/mixer'
+    | '/perfil'
+    | '/phpmyadmin'
+    | '/sucesso'
+    | '/wp-admin'
+    | '/wp-login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  CheckoutRoute: typeof CheckoutRoute
   ContatoRoute: typeof ContatoRoute
+  LoginRoute: typeof LoginRoute
   LojaRoute: typeof LojaRoute
   MaisOuvidasRoute: typeof MaisOuvidasRoute
-  PedidoIdRoute: typeof PedidoIdRoute
+  MixerRoute: typeof MixerRoute
+  PerfilRoute: typeof PerfilRoute
+  PhpmyadminRoute: typeof PhpmyadminRoute
+  SucessoRoute: typeof SucessoRoute
+  WpAdminRoute: typeof WpAdminRoute
+  WpLoginRoute: typeof WpLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wp-login': {
+      id: '/wp-login'
+      path: '/wp-login'
+      fullPath: '/wp-login'
+      preLoaderRoute: typeof WpLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wp-admin': {
+      id: '/wp-admin'
+      path: '/wp-admin'
+      fullPath: '/wp-admin'
+      preLoaderRoute: typeof WpAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sucesso': {
+      id: '/sucesso'
+      path: '/sucesso'
+      fullPath: '/sucesso'
+      preLoaderRoute: typeof SucessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phpmyadmin': {
+      id: '/phpmyadmin'
+      path: '/phpmyadmin'
+      fullPath: '/phpmyadmin'
+      preLoaderRoute: typeof PhpmyadminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mixer': {
+      id: '/mixer'
+      path: '/mixer'
+      fullPath: '/mixer'
+      preLoaderRoute: typeof MixerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mais-ouvidas': {
       id: '/mais-ouvidas'
       path: '/mais-ouvidas'
@@ -118,11 +257,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contato': {
       id: '/contato'
       path: '/contato'
       fullPath: '/contato'
       preLoaderRoute: typeof ContatoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -139,24 +292,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pedido/$id': {
-      id: '/pedido/$id'
-      path: '/pedido/$id'
-      fullPath: '/pedido/$id'
-      preLoaderRoute: typeof PedidoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  CheckoutRoute: CheckoutRoute,
   ContatoRoute: ContatoRoute,
+  LoginRoute: LoginRoute,
   LojaRoute: LojaRoute,
   MaisOuvidasRoute: MaisOuvidasRoute,
-  PedidoIdRoute: PedidoIdRoute,
+  MixerRoute: MixerRoute,
+  PerfilRoute: PerfilRoute,
+  PhpmyadminRoute: PhpmyadminRoute,
+  SucessoRoute: SucessoRoute,
+  WpAdminRoute: WpAdminRoute,
+  WpLoginRoute: WpLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

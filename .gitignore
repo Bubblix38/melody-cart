@@ -20,6 +20,22 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Environment files (contain credentials)
+.env
+.env.*
+!.env.example
+
+# Ferramentas e recursos mantidos apenas localmente (não vão para o site no ar)
+# Scrapper de URLs do Supabase (uso local, contém .env com credenciais)
+scrapper/
+# Arquivos de teste/rascunho
+scratch/
+.kombai/
+# Mixer de DJ — ainda em construção, mantido só no computador por enquanto
+src/routes/mixer.tsx
+src/components/dj/
+src/lib/dj/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

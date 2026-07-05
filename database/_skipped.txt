@@ -1,0 +1,7 @@
+CompositeTypes — não exposta na API (PostgREST)
+Enums — não exposta na API (PostgREST)
+Functions — não exposta na API (PostgREST)
+Insert — não exposta na API (PostgREST)
+Row — não exposta na API (PostgREST)
+Update — não exposta na API (PostgREST)
+Views — não exposta na API (PostgREST)

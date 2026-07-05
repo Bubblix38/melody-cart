@@ -1,0 +1,177 @@
+import {
+  SkipBack,
+  Play,
+  Pause,
+  SkipForward,
+  Shuffle,
+  Repeat,
+  Volume2,
+  VolumeX,
+  Heart,
+  Music2,
+} from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { useAudioPlayer } from "@/lib/audio-player";
+import { Waveform } from "@/components/Waveform";
+
+function formatTime(seconds: number): string {
+  if (!seconds || !isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+export function FixedPlayer() {
+  const {
+    current,
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    isShuffle,
+    isRepeat,
+    toggle,
+    next,
+    prev,
+    seek,
+    setVolume,
+    toggleMute,
+    toggleShuffle,
+    toggleRepeat,
+  } = useAudioPlayer();
+
+  const [isLiked, setIsLiked] = useState(false);
+
+  const progress = duration > 0 ? currentTime / duration : 0;
+
+  function handleSeekRatio(ratio: number) {
+    if (!current || duration <= 0) return;
+    seek(ratio * duration);
+  }
+
+  return (
+    <div className="fixed bottom-0 z-50 h-16 w-full border-t border-white/10 glass-nav px-4 md:px-6">
+      <div className="mx-auto flex h-full max-w-[1440px] items-center gap-4 md:gap-10">
+        {/* Controls */}
+        <div className="flex shrink-0 items-center gap-3 md:gap-5">
+          <button
+            onClick={prev}
+            disabled={!current}
+            className="hidden text-white/60 transition-colors hover:text-white disabled:opacity-30 sm:block"
+            aria-label="Faixa anterior"
+          >
+            <SkipBack className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+          </button>
+          <button
+            onClick={toggle}
+            disabled={!current}
+            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 disabled:opacity-40 disabled:hover:scale-100"
+            aria-label={isPlaying ? "Pausar" : "Tocar"}
+          >
+            {isPlaying ? (
+              <Pause className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+            ) : (
+              <Play className="h-4 w-4 md:h-5 md:w-5 fill-current ml-0.5" />
+            )}
+          </button>
+          <button
+            onClick={next}
+            disabled={!current}
+            className="hidden text-white/60 transition-colors hover:text-white disabled:opacity-30 sm:block"
+            aria-label="Próxima faixa"
+          >
+            <SkipForward className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+          </button>
+          <button
+            onClick={toggleShuffle}
+            className={cn(
+              "hidden transition-colors lg:block",
+              isShuffle ? "text-primary" : "text-white/60 hover:text-white",
+            )}
+            aria-label="Aleatório"
+            aria-pressed={isShuffle}
+          >
+            <Shuffle className="h-4 w-4" />
+          </button>
+          <button
+            onClick={toggleRepeat}
+            className={cn(
+              "hidden transition-colors lg:block",
+              isRepeat ? "text-primary" : "text-white/60 hover:text-white",
+            )}
+            aria-label="Repetir"
+            aria-pressed={isRepeat}
+          >
+            <Repeat className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Progress Bar (Waveform Style) */}
+        <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-4 text-[9px] md:text-[10px] font-bold font-mono">
+          <span className="shrink-0 text-primary">{formatTime(currentTime)}</span>
+          <Waveform
+            progress={progress}
+            height={28}
+            barCount={72}
+            seed={2}
+            className="flex-1 group"
+            onSeek={handleSeekRatio}
+          />
+          <span className="shrink-0 text-white/40">{formatTime(duration)}</span>
+        </div>
+
+        {/* Current Track Info */}
+        <div className="flex w-32 md:w-48 shrink-0 items-center gap-2 md:gap-3 min-w-0">
+          <div className="flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center overflow-hidden rounded border border-white/10 bg-white/5 shadow-md">
+            {current?.coverUrl ? (
+              <img src={current.coverUrl} alt={current.title} className="h-full w-full object-cover" />
+            ) : (
+              <Music2 className="h-4 w-4 text-white/40" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1 hidden sm:block">
+            <p className="truncate text-[10px] md:text-xs font-bold text-white uppercase tracking-tight">
+              {current?.title ?? "Nada tocando"}
+            </p>
+            <p className="truncate text-[8px] md:text-[9px] font-bold uppercase tracking-widest text-white/40">
+              {current?.artist ?? "TopDJ"}
+            </p>
+          </div>
+          <button
+            onClick={() => setIsLiked((l) => !l)}
+            className={cn(
+              "transition-colors shrink-0",
+              isLiked ? "text-primary" : "text-white/40 hover:text-white",
+            )}
+            aria-label="Curtir"
+          >
+            <Heart className={cn("h-3.5 w-3.5 md:h-4 md:w-4", isLiked && "fill-current")} />
+          </button>
+        </div>
+
+        {/* Volume */}
+        <div className="hidden shrink-0 items-center gap-2 md:flex">
+          <button
+            onClick={toggleMute}
+            className="text-white/60 transition-colors hover:text-white"
+            aria-label={isMuted ? "Ativar som" : "Silenciar"}
+          >
+            {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={isMuted ? 0 : volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            aria-label="Volume"
+            className="h-1 w-16 md:w-20 cursor-pointer appearance-none rounded-full bg-white/10 accent-primary"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -32,6 +32,13 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} TopDJ. Todos os direitos reservados.
           </p>
+
+          {/* Honeypot Links Invisíveis para Atrair Scanners (Security through Obscurity) */}
+          <div aria-hidden="true" style={{ display: "none" }}>
+            <a href="/wp-admin">Painel WP</a>
+            <a href="/wp-login">Login WP</a>
+            <a href="/phpmyadmin">Banco de Dados</a>
+          </div>
         </div>
       </div>
     </footer>
