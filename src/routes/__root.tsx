@@ -112,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         httpEquiv: "Content-Security-Policy",
         content:
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https://zcznaozaosciiffqncjo.supabase.co https://nwsjgacmraijqyvvghoh.supabase.co; connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co https://nwsjgacmraijqyvvghoh.supabase.co wss://nwsjgacmraijqyvvghoh.supabase.co https://ipapi.co;",
+          "default-src 'self' https: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; media-src 'self' https:; connect-src 'self' https: wss:;",
       },
     ],
     links: [
