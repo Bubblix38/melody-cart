@@ -43,6 +43,60 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 }
+// Comparação em tempo constante para strings hex (evita timing attacks)
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
+// Verifica a assinatura do webhook do Stripe usando Web Crypto (compatível com Workers).
+// A assinatura é calculada como HMAC-SHA256 de `${timestamp}.${rawBody}`.
+async function verifyStripeSignature(
+  payload: string,
+  sigHeader: string | null,
+  secret: string,
+  toleranceSec = 300,
+): Promise<boolean> {
+  if (!sigHeader) return false;
+
+  let timestamp = "";
+  const signatures: string[] = [];
+  for (const part of sigHeader.split(",")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    const key = part.slice(0, idx).trim();
+    const value = part.slice(idx + 1).trim();
+    if (key === "t") timestamp = value;
+    else if (key === "v1") signatures.push(value);
+  }
+
+  if (!timestamp || signatures.length === 0) return false;
+
+  const ts = parseInt(timestamp, 10);
+  if (!Number.isFinite(ts)) return false;
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - ts) > toleranceSec) return false;
+
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sigBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${payload}`));
+  const expected = [...new Uint8Array(sigBuffer)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return signatures.some((sig) => timingSafeEqualHex(sig, expected));
+}
+
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
@@ -130,13 +184,33 @@ export default {
       const url = new URL(request.url);
       if (request.method === "POST" && url.pathname === "/api/webhook") {
         try {
-          // Em produção seria necessário verificar a assinatura do webhook (STRIPE_WEBHOOK_SECRET)
-          const body = await request.json();
-          
+          const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+          if (!webhookSecret) {
+            console.error("STRIPE_WEBHOOK_SECRET não configurado; webhook rejeitado.");
+            return new Response("Webhook não configurado", { status: 500 });
+          }
+
+          // Assinatura precisa ser verificada sobre o corpo bruto (raw body)
+          const rawBody = await request.text();
+          const signature = request.headers.get("stripe-signature");
+
+          const verified = await verifyStripeSignature(rawBody, signature, webhookSecret);
+          if (!verified) {
+            securityLogger.log(
+              "suspicious",
+              clientIP,
+              request.headers.get("user-agent") || "",
+              "Assinatura de webhook Stripe inválida",
+            );
+            return new Response("Assinatura inválida", { status: 400 });
+          }
+
+          const body = JSON.parse(rawBody);
+
           if (body.type === "payment_intent.succeeded") {
             const paymentIntent = body.data.object;
             const { createClient } = await import("@supabase/supabase-js");
-            
+
             const sbAdmin = createClient(
               process.env.SUPABASE_URL!,
               process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -147,10 +221,10 @@ export default {
               .from("pedidos")
               .update({ status: "pago" })
               .eq("stripe_payment_intent_id", paymentIntent.id);
-              
+
             console.log("Webhook processado:", paymentIntent.id);
           }
-          
+
           return new Response(JSON.stringify({ received: true }), {
             status: 200,
             headers: { "Content-Type": "application/json" }
@@ -160,6 +234,7 @@ export default {
           return new Response("Webhook Error", { status: 400 });
         }
       }
+
 
       const handler = await getServerEntry();
       let response = await handler.fetch(request, env, ctx);
