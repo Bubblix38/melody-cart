@@ -94,14 +94,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "generator", content: "WordPress 6.4.1" },
-      { title: "TopDJ — Packs de Música para Comprar" },
+      { title: "TopDJ — Descubra e Compre os Melhores Álbuns" },
       {
         name: "description",
         content:
           "Descubra e compre os melhores packs de música: Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro e envio rápido na TopDJ.",
       },
       { name: "author", content: "TopDJ" },
-      { property: "og:title", content: "TopDJ — Packs de Música para Comprar" },
+      { property: "og:title", content: "TopDJ — Descubra e Compre os Melhores Álbuns" },
       {
         property: "og:description",
         content:
@@ -114,6 +114,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://nwsjgacmraijqyvvghoh.supabase.co https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' https://nwsjgacmraijqyvvghoh.supabase.co; connect-src 'self' https://nwsjgacmraijqyvvghoh.supabase.co wss://nwsjgacmraijqyvvghoh.supabase.co https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com;",
       },
+      { name: "twitter:title", content: "TopDJ — Descubra e Compre os Melhores Álbuns" },
+      { name: "description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
+      { property: "og:description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
+      { name: "twitter:description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/20f64a2e-f7ea-486b-8d17-b979d2627c13/id-preview-54a72a15--ecf14f43-c191-48cb-861f-8fcbe0315698.lovable.app-1783349783327.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/20f64a2e-f7ea-486b-8d17-b979d2627c13/id-preview-54a72a15--ecf14f43-c191-48cb-861f-8fcbe0315698.lovable.app-1783349783327.png" },
     ],
     links: [
       {
