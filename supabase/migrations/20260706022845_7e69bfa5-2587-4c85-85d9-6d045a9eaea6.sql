@@ -1,0 +1,1 @@
+ALTER TABLE public.packs ADD COLUMN IF NOT EXISTS spotify_url TEXT;

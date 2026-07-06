@@ -61,11 +61,11 @@ function Index() {
   const abaAtiva = aba ?? "todas";
 
   function setAba(novaAba: string) {
-    navigate({ search: (prev) => ({ ...prev, aba: novaAba === "todas" ? undefined : novaAba }) });
+    navigate({ search: (prev: HomeSearch) => ({ ...prev, aba: novaAba === "todas" ? undefined : novaAba }) });
   }
 
   function setGenero(g?: string) {
-    navigate({ search: (prev) => ({ ...prev, genero: g }) });
+    navigate({ search: (prev: HomeSearch) => ({ ...prev, genero: g }) });
   }
 
   // Logic to find a good spotlight pack
