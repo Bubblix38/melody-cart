@@ -109,6 +109,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        httpEquiv: "Content-Security-Policy",
+        content:
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https://zcznaozaosciiffqncjo.supabase.co; connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co;",
+      },
     ],
     links: [
       {
