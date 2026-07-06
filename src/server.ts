@@ -130,13 +130,33 @@ export default {
       const url = new URL(request.url);
       if (request.method === "POST" && url.pathname === "/api/webhook") {
         try {
-          // Em produção seria necessário verificar a assinatura do webhook (STRIPE_WEBHOOK_SECRET)
-          const body = await request.json();
-          
+          const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+          if (!webhookSecret) {
+            console.error("STRIPE_WEBHOOK_SECRET não configurado; webhook rejeitado.");
+            return new Response("Webhook não configurado", { status: 500 });
+          }
+
+          // Assinatura precisa ser verificada sobre o corpo bruto (raw body)
+          const rawBody = await request.text();
+          const signature = request.headers.get("stripe-signature");
+
+          const verified = await verifyStripeSignature(rawBody, signature, webhookSecret);
+          if (!verified) {
+            securityLogger.log(
+              "suspicious",
+              clientIP,
+              request.headers.get("user-agent") || "",
+              "Assinatura de webhook Stripe inválida",
+            );
+            return new Response("Assinatura inválida", { status: 400 });
+          }
+
+          const body = JSON.parse(rawBody);
+
           if (body.type === "payment_intent.succeeded") {
             const paymentIntent = body.data.object;
             const { createClient } = await import("@supabase/supabase-js");
-            
+
             const sbAdmin = createClient(
               process.env.SUPABASE_URL!,
               process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -147,10 +167,10 @@ export default {
               .from("pedidos")
               .update({ status: "pago" })
               .eq("stripe_payment_intent_id", paymentIntent.id);
-              
+
             console.log("Webhook processado:", paymentIntent.id);
           }
-          
+
           return new Response(JSON.stringify({ received: true }), {
             status: 200,
             headers: { "Content-Type": "application/json" }
@@ -160,6 +180,7 @@ export default {
           return new Response("Webhook Error", { status: 400 });
         }
       }
+
 
       const handler = await getServerEntry();
       let response = await handler.fetch(request, env, ctx);
