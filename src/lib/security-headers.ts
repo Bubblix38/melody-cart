@@ -25,12 +25,12 @@ export const SECURITY_HEADERS = {
   // Content Security Policy
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://zcznaozaosciiffqncjo.supabase.co https://js.stripe.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-{NONCE}' https://*.supabase.co https://js.stripe.com",
+    "style-src 'self' 'unsafe-inline' 'nonce-{NONCE}'",
     "img-src 'self' data: https:",
-    "font-src 'self' data: https://cdn.gpteng.co https://fonts.gstatic.com",
-    "media-src 'self' https://zcznaozaosciiffqncjo.supabase.co",
-    "connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co https://api.stripe.com",
+    "font-src 'self' data: https://cdn.gpteng.co",
+    "media-src 'self' https://*.supabase.co",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
     "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
