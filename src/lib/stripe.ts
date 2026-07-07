@@ -75,7 +75,11 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
         metadata: { userId: userId ?? "anonymous", validatedAmount: amount.toString() },
       });
 
-      const sbAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY === "COPIAR_SERVICE_ROLE_KEY_AQUI") {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY não está configurada no servidor (Vercel/Local).");
+      }
+      
+      const sbAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
 
@@ -123,7 +127,11 @@ export const verifyPaymentFn = createServerFn({ method: "POST" })
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     if (!supabaseUrl) throw new Error("Configuração do Supabase ausente no servidor");
 
-    const sbAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY === "COPIAR_SERVICE_ROLE_KEY_AQUI") {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY não está configurada no servidor (Vercel/Local).");
+    }
+
+    const sbAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
