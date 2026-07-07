@@ -152,12 +152,18 @@ export default {
         });
       }
 
+      // Parse URL once at the beginning
+      const url = new URL(request.url);
+
       // Validação CSRF server-side: verificar Origin/Referer em mutações
       if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
         const origin = request.headers.get("origin");
         const referer = request.headers.get("referer");
         const host = request.headers.get("host") || "";
+        const csrfHeader = request.headers.get("X-CSRF-Token");
+        const csrfCookie = request.headers.get("cookie")?.split(";").find((c) => c.includes("__Host-csrf-token"));
 
+        // Validar Origin
         if (origin) {
           try {
             const originUrl = new URL(origin);
@@ -172,16 +178,74 @@ export default {
                 request.headers.get("user-agent") || "",
                 `Origin inválido: ${origin}`,
               );
-              return new Response("Forbidden", { status: 403 });
+              return new Response("Forbidden: Invalid Origin", { status: 403 });
             }
           } catch {
-            return new Response("Forbidden", { status: 403 });
+            return new Response("Forbidden: Invalid Origin URL", { status: 403 });
+          }
+        }
+
+        // Validar CSRF via Double-Submit Cookie
+        // Para /admin, /api/packs*, /api/tracks*, exigir CSRF válido
+        const isProtectedPath = url.pathname.startsWith("/admin") ||
+                               url.pathname.startsWith("/api/packs") ||
+                               url.pathname.startsWith("/api/tracks");
+
+        if (isProtectedPath && request.method !== "GET") {
+          // Exigir CSRF header + cookie
+          if (!csrfHeader || !csrfCookie) {
+            securityLogger.log(
+              "suspicious",
+              clientIP,
+              request.headers.get("user-agent") || "",
+              "CSRF token ausente em mutação protegida",
+            );
+            return new Response("Forbidden: CSRF token required", { status: 403 });
+          }
+
+          // Extrair token do cookie
+          const cookieToken = csrfCookie.split("__Host-csrf-token=")[1]?.split(";")[0];
+          if (!cookieToken || cookieToken !== csrfHeader) {
+            securityLogger.log(
+              "suspicious",
+              clientIP,
+              request.headers.get("user-agent") || "",
+              "CSRF token mismatch ou inválido",
+            );
+            return new Response("Forbidden: CSRF validation failed", { status: 403 });
           }
         }
       }
 
+      // Processar endpoints especiais (CSRF init, Webhook, etc)
+
+      // Endpoint para inicialização de token CSRF (Define HttpOnly SameSite Cookie)
+      if (request.method === "POST" && url.pathname === "/api/security/csrf-init") {
+        try {
+          const body = await request.json();
+          const token = body.token;
+
+          if (!token || typeof token !== "string" || token.length < 32) {
+            return new Response("Invalid CSRF token", { status: 400 });
+          }
+
+          // Definir cookie HttpOnly com SameSite=Strict (máxima proteção)
+          const response = new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Set-Cookie": `__Host-csrf-token=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600`,
+            },
+          });
+
+          return response;
+        } catch (err) {
+          console.error("Erro ao processar CSRF init:", err);
+          return new Response("CSRF init error", { status: 400 });
+        }
+      }
+
       // Webhook do Stripe
-      const url = new URL(request.url);
       if (request.method === "POST" && url.pathname === "/api/webhook") {
         try {
           const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_67VM5gISABrIujxUnvW2ngNyjTcDkUjn";

@@ -14,6 +14,7 @@ import { Route as WpAdminRouteImport } from './routes/wp-admin'
 import { Route as SucessoRouteImport } from './routes/sucesso'
 import { Route as PhpmyadminRouteImport } from './routes/phpmyadmin'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as MixerRouteImport } from './routes/mixer'
 import { Route as MaisOuvidasRouteImport } from './routes/mais-ouvidas'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as LoginRouteImport } from './routes/login'
@@ -45,6 +46,11 @@ const PhpmyadminRoute = PhpmyadminRouteImport.update({
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MixerRoute = MixerRouteImport.update({
+  id: '/mixer',
+  path: '/mixer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MaisOuvidasRoute = MaisOuvidasRouteImport.update({
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/mais-ouvidas': typeof MaisOuvidasRoute
+  '/mixer': typeof MixerRoute
   '/perfil': typeof PerfilRoute
   '/phpmyadmin': typeof PhpmyadminRoute
   '/sucesso': typeof SucessoRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/mais-ouvidas': typeof MaisOuvidasRoute
+  '/mixer': typeof MixerRoute
   '/perfil': typeof PerfilRoute
   '/phpmyadmin': typeof PhpmyadminRoute
   '/sucesso': typeof SucessoRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/mais-ouvidas': typeof MaisOuvidasRoute
+  '/mixer': typeof MixerRoute
   '/perfil': typeof PerfilRoute
   '/phpmyadmin': typeof PhpmyadminRoute
   '/sucesso': typeof SucessoRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/loja'
     | '/mais-ouvidas'
+    | '/mixer'
     | '/perfil'
     | '/phpmyadmin'
     | '/sucesso'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/loja'
     | '/mais-ouvidas'
+    | '/mixer'
     | '/perfil'
     | '/phpmyadmin'
     | '/sucesso'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/loja'
     | '/mais-ouvidas'
+    | '/mixer'
     | '/perfil'
     | '/phpmyadmin'
     | '/sucesso'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   LojaRoute: typeof LojaRoute
   MaisOuvidasRoute: typeof MaisOuvidasRoute
+  MixerRoute: typeof MixerRoute
   PerfilRoute: typeof PerfilRoute
   PhpmyadminRoute: typeof PhpmyadminRoute
   SucessoRoute: typeof SucessoRoute
@@ -221,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mixer': {
+      id: '/mixer'
+      path: '/mixer'
+      fullPath: '/mixer'
+      preLoaderRoute: typeof MixerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mais-ouvidas': {
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   LojaRoute: LojaRoute,
   MaisOuvidasRoute: MaisOuvidasRoute,
+  MixerRoute: MixerRoute,
   PerfilRoute: PerfilRoute,
   PhpmyadminRoute: PhpmyadminRoute,
   SucessoRoute: SucessoRoute,
@@ -292,3 +313,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

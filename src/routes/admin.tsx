@@ -255,23 +255,50 @@ function Admin() {
     const email = loginEmail.trim().toLowerCase();
     const password = loginPassword;
 
+    // Verificar rate limiting
+    const { checkRateLimit, recordLoginAttempt } = await import("@/lib/login-security");
+    const rateCheckEmail = checkRateLimit("admin-login", email);
+    const rateCheckIp = checkRateLimit("admin-login-ip", "client-ip");
+
+    if (!rateCheckEmail.allowed) {
+      setLoginError(rateCheckEmail.reason || "Muitas tentativas");
+      logSecurityEvent("login_blocked_rate_limit", { email });
+      return;
+    }
+
+    if (!rateCheckIp.allowed) {
+      setLoginError(rateCheckIp.reason || "IP bloqueado por segurança");
+      logSecurityEvent("login_blocked_ip", { email });
+      return;
+    }
+
+    // Se houver tentativas anteriores, avisar de possível captcha
+    if (rateCheckEmail.requiresCaptcha || rateCheckIp.requiresCaptcha) {
+      console.warn("[LOGIN] Captcha recomendado para:", email);
+      // TODO: Mostrar Captcha (Google reCAPTCHA, hCaptcha, etc)
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    // Registrar tentativa
+    recordLoginAttempt(email, !error).catch((err) =>
+      console.error("Erro ao registrar login:", err)
+    );
+
     if (error) {
       setLoginError(error.message);
-      // Registrar tentativa falha de login (Rate Limit e Auditoria)
-      logSecurityEvent("login_failed", { email });
+      logSecurityEvent("login_failed", { email, error: error.code });
     } else if (data.session?.user) {
-      // Login bem-sucedido - gerar fingerprint
+      // Login bem-sucedido
       const { generateFingerprint } = await import("@/lib/session-security");
       const fingerprint = generateFingerprint();
       sessionStorage.setItem("browser-fingerprint", fingerprint);
 
       // Gerenciar múltiplas sessões
-      const clientIP = "unknown"; // Em produção, capturar IP real
+      const clientIP = "unknown";
       const userAgent = navigator.userAgent;
 
       const sessionValidation = multiSessionManager.registerSession(
@@ -282,12 +309,9 @@ function Admin() {
 
       if (sessionValidation.kickedSession) {
         console.warn(`Sessão anterior encerrada: ${sessionValidation.kickedSession.ip}`);
-        // Opcional: Notificar o usuário (email, toast, etc.)
       }
 
-      if (sessionValidation.reason) {
-        console.log(sessionValidation.reason);
-      }
+      logSecurityEvent("login_success", { email, fingerprint });
     }
   }
 
