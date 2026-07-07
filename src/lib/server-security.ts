@@ -7,13 +7,22 @@ import { SECURITY_HEADERS, securityMiddleware, detectScanningTools } from "./sec
 
 /**
  * Aplica headers de segurança em uma Response
+ * @param response - Response object to apply headers to
+ * @param nonce - Optional CSP nonce for inline scripts
  */
-export function applySecurityHeaders(response: Response): Response {
+export function applySecurityHeaders(response: Response, nonce?: string): Response {
   const headers = new Headers(response.headers);
 
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     if (value && value.length > 0) {
-      headers.set(key, value);
+      let headerValue = value;
+      
+      // Substituir placeholder {NONCE} com nonce dinâmico se fornecido
+      if (nonce && key === "Content-Security-Policy") {
+        headerValue = value.replace(/{NONCE}/g, nonce);
+      }
+      
+      headers.set(key, headerValue);
     }
   }
 

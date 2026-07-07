@@ -25,8 +25,8 @@ export const SECURITY_HEADERS = {
   // Content Security Policy
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://nwsjgacmraijqyvvghoh.supabase.co https://js.stripe.com",
-    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'nonce-{NONCE}' https://nwsjgacmraijqyvvghoh.supabase.co https://js.stripe.com",
+    "style-src 'self' 'nonce-{NONCE}'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     "media-src 'self' https://nwsjgacmraijqyvvghoh.supabase.co",

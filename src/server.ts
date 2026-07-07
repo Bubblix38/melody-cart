@@ -9,6 +9,7 @@ import {
   rateLimiter,
 } from "./lib/server-security";
 import { vpnTorDetector } from "./lib/vpn-detection";
+import { generateNonce } from "./lib/security-headers";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -101,6 +102,9 @@ async function verifyStripeSignature(
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Generate unique nonce for this request (CSP inline scripts)
+      const nonce = generateNonce();
+      
       // Aplicar verificação de segurança
       const securityResult = await securityCheck(request);
       if (!securityResult.allowed) {
@@ -303,8 +307,8 @@ export default {
       const handler = await getServerEntry();
       let response = await handler.fetch(request, env, ctx);
 
-      // Aplicar headers de segurança
-      response = applySecurityHeaders(response);
+      // Aplicar headers de segurança com nonce dinâmico
+      response = applySecurityHeaders(response, nonce);
 
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
