@@ -57,6 +57,9 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
 
       const amount = Math.round(total * 100);
       if (amount <= 0) throw new Error("Valor inválido");
+      if (amount < 200) {
+        throw new Error("O valor mínimo para pagamento (exigido pelo Stripe) é de R$ 2,00. Adicione mais itens ao carrinho.");
+      }
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
