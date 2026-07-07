@@ -184,7 +184,7 @@ export default {
       const url = new URL(request.url);
       if (request.method === "POST" && url.pathname === "/api/webhook") {
         try {
-          const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_67VM5gISABrIujxUnvW2ngNyjTcDkUjn";
+          const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
           if (!webhookSecret) {
             console.error("STRIPE_WEBHOOK_SECRET não configurado; webhook rejeitado.");
             return new Response("Webhook não configurado", { status: 500 });
