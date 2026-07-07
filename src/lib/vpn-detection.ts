@@ -322,16 +322,11 @@ export function assessIPRisk(ip: string, headers?: Headers): IPRiskAssessment {
  * Verifica se IP deve ser bloqueado
  */
 export function shouldBlockIP(assessment: IPRiskAssessment): boolean {
-  // Bloquear se:
-  // - TOR (risco >= 100)
-  // - VPN + VPS (risco >= 140)
-  // - Múltiplos indicadores (risco >= 100)
-
-  if (assessment.isTOR) return true;
-  if (assessment.isVPN && assessment.isVPS) return true;
-  if (assessment.riskScore >= 100) return true;
-
-  return false;
+  // Só bloqueamos de forma dura em caso de correspondência confiável com nó
+  // TOR conhecido. Faixas de VPN/VPS são muito amplas e mantidas à mão, então
+  // geram falsos positivos (Cloudflare, operadoras móveis, etc.) que derrubam
+  // usuários legítimos com "Access Denied". Esses casos ficam apenas em log.
+  return assessment.isTOR;
 }
 
 /**
