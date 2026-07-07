@@ -1,0 +1,171 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                  🤖 AUTOMATIZACAO COMPLETA - TOPJ SECURITY                   ║
+║                                                                              ║
+║  Execute um dos scripts abaixo para configurar TUDO automaticamente!         ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+✅ OPÇÃO 1: WINDOWS (PowerShell - Recomendado)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Abra PowerShell como administrador
+2. Na pasta do projeto, execute:
+
+   .\auto-setup.ps1
+
+3. Aguarde terminar (vai fazer):
+   ✅ Criar .env.local
+   ✅ Instalar npm
+   ✅ Fazer build
+   ✅ Preparar tudo
+
+
+✅ OPÇÃO 2: WINDOWS (CMD/Batch)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Abra CMD como administrador
+2. Na pasta do projeto, execute:
+
+   auto-setup.bat
+
+3. Aguarde terminar (vai fazer):
+   ✅ Criar .env.local
+   ✅ Instalar npm
+   ✅ Fazer build
+   ✅ Preparar tudo
+
+
+✅ OPÇÃO 3: Linux/Mac (Bash)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Abra Terminal
+2. Na pasta do projeto, execute:
+
+   chmod +x auto-setup.sh
+   bash auto-setup.sh
+
+3. Aguarde terminar
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+O QUE CADA SCRIPT FAZ:
+
+1. ✅ Verifica se você está na pasta certa
+2. ✅ Cria arquivo .env.local com template
+3. ✅ Instala npm e dependências
+4. ✅ Faz build do projeto
+5. ✅ Prepara para rodar
+
+TEMPO: ~3-5 minutos (primeiro: ~10 min com npm install)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DEPOIS QUE TERMINAR:
+
+1. EDITAR .env.local com suas chaves:
+   
+   ┌─────────────────────────────────────────────────┐
+   │ VITE_SUPABASE_PUBLISHABLE_KEY=COPIAR_DAQUI      │
+   │ └─→ Supabase → Settings → API → anon public    │
+   │                                                 │
+   │ VITE_RECAPTCHA_SITE_KEY=COPIAR_DAQUI           │
+   │ └─→ Google reCAPTCHA → Site Key                │
+   │                                                 │
+   │ VITE_RECAPTCHA_SECRET_KEY=COPIAR_DAQUI         │
+   │ └─→ Google reCAPTCHA → Secret Key              │
+   └─────────────────────────────────────────────────┘
+
+2. ADICIONAR ao Lovable Settings → Environment Variables
+
+3. TESTAR:
+   npm run dev
+   
+   Abra http://localhost:5173/loja
+   Deve carregar sem erro "No API key found"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SE DER ERRO:
+
+❌ "npm não encontrado"
+   → Instale Node.js: https://nodejs.org/
+   → Reinicie o computador
+   → Execute novamente
+
+❌ "Permission denied"
+   → No PowerShell:
+     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+     .\auto-setup.ps1
+
+❌ "Build falhou"
+   → Verifique console para erros
+   → Veja COMO_CONTINUAR.md
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ARQUIVOS CRIADOS AUTOMATICAMENTE:
+
+✅ .env.local
+   └─ Arquivo de configuração local (NÃO commitar!)
+
+✅ .env.example
+   └─ Template para referência
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PRÓXIMOS PASSOS:
+
+1. ✅ Executar script automático (AGORA)
+2. ✅ Editar .env.local com suas chaves (5 min)
+3. ✅ Adicionar ao Lovable Settings (5 min)
+4. ✅ Implementar reCAPTCHA (2-3 horas esta semana)
+5. ✅ Implementar Email Alerts (1-2 horas próxima semana)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+COMANDOS ÚTEIS (depois):
+
+npm run dev
+  → Inicia servidor de desenvolvimento
+
+npm run build
+  → Faz build para produção
+
+npm run test
+  → Roda testes (se existir)
+
+npm run lint
+  → Verifica estilo de código
+
+git status
+  → Ver mudanças
+
+git add .
+  → Adicionar arquivos
+
+git commit -m "msg"
+  → Fazer commit
+
+git push
+  → Enviar para GitHub
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DOCUMENTACAO:
+
+📖 COMO_CONTINUAR.md                ← O que fazer agora
+📖 CONFIGURAR_LOVABLE_SUPABASE.md    ← Como usar Supabase
+📖 PROXIMOS_PASSOS_SEGURANCA.md      ← Implementar reCAPTCHA + Email
+📖 AUTOMACAO_SETUP.md                ← Mais detalhes sobre automação
+📖 ARQUITETURA_SEGURANCA.md          ← Como tudo funciona
+📖 INDICE_SEGURANCA.md               ← Índice de tudo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                    👉 EXECUTE AGORA: .\auto-setup.ps1
+
+═══════════════════════════════════════════════════════════════════════════════
+
