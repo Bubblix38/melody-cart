@@ -300,19 +300,11 @@ export function assessIPRisk(ip: string, headers?: Headers): IPRiskAssessment {
     }
   }
 
-  // Verificar se é IP privado (não deveria estar acessando)
-  const ipParts = ip.split(".").map(Number);
-  const isPrivate =
-    ipParts[0] === 10 ||
-    (ipParts[0] === 172 && ipParts[1] >= 16 && ipParts[1] <= 31) ||
-    (ipParts[0] === 192 && ipParts[1] === 168) ||
-    ip === "127.0.0.1" ||
-    ip === "::1";
+  // NOTA: NÃO penalizamos IPs privados nem headers de proxy no score de
+  // bloqueio. Em produção o site roda atrás do edge/CDN da Lovable, então
+  // TODA requisição legítima chega com headers de proxy e, muitas vezes, com
+  // um IP encaminhado interno. Penalizar isso bloquearia usuários reais.
 
-  if (isPrivate) {
-    riskScore += 50;
-    reasons.push("IP privado detectado");
-  }
 
   return {
     ip,
