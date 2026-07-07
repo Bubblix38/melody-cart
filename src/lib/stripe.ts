@@ -13,7 +13,14 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
       apiVersion: "2024-04-10" as any,
     });
 
-    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Configuração do Supabase ausente no servidor (apiKey/URL)");
+    }
+
+    const sb = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
@@ -68,8 +75,7 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
         metadata: { userId: userId ?? "anonymous", validatedAmount: amount.toString() },
       });
 
-      // Salvar pedido no Supabase usando SERVICE_ROLE para ignorar restrições RLS de leitura
-      const sbAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      const sbAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
 
@@ -114,7 +120,10 @@ export const verifyPaymentFn = createServerFn({ method: "POST" })
       apiVersion: "2024-04-10" as any,
     });
 
-    const sbAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) throw new Error("Configuração do Supabase ausente no servidor");
+
+    const sbAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
