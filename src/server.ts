@@ -10,6 +10,85 @@ import {
 } from "./lib/server-security";
 import { vpnTorDetector } from "./lib/vpn-detection";
 import { generateNonce } from "./lib/security-headers";
+import { logSecurityEvent } from "./lib/security-logger";
+
+/**
+ * Rate Limiter para Login Admin
+ * Proteção contra força bruta / credential stuffing
+ */
+class LoginRateLimiter {
+  private attempts: Map<string, { count: number; blockedUntil: number | null }> = new Map();
+  private readonly ATTEMPTS_PER_MINUTE = 5;
+  private readonly INITIAL_BLOCK_MS = 15 * 60 * 1000; // 15 minutos
+  private readonly MAX_BLOCK_MS = 60 * 60 * 1000; // 1 hora
+  private readonly BACKOFF_MULTIPLIER = 2;
+
+  isAllowed(identifier: string): { allowed: boolean; remainingSeconds?: number } {
+    const now = Date.now();
+    const record = this.attempts.get(identifier) || { count: 0, blockedUntil: null };
+
+    // Se estava bloqueado, verificar se o tempo passou
+    if (record.blockedUntil && now < record.blockedUntil) {
+      const remainingMs = record.blockedUntil - now;
+      return {
+        allowed: false,
+        remainingSeconds: Math.ceil(remainingMs / 1000),
+      };
+    }
+
+    // Reset se passou do bloqueio
+    if (record.blockedUntil && now >= record.blockedUntil) {
+      record.count = 0;
+      record.blockedUntil = null;
+    }
+
+    return { allowed: true };
+  }
+
+  recordAttempt(identifier: string, failures: number = 0): void {
+    const now = Date.now();
+    const record = this.attempts.get(identifier) || { count: 0, blockedUntil: null };
+
+    record.count++;
+
+    // Se ultrapassar limite, bloquear com backoff exponencial
+    if (record.count > this.ATTEMPTS_PER_MINUTE) {
+      const backoffLevel = Math.min(failures, 3); // Max 3x backoff
+      const blockDuration = Math.min(
+        this.INITIAL_BLOCK_MS * Math.pow(this.BACKOFF_MULTIPLIER, backoffLevel),
+        this.MAX_BLOCK_MS
+      );
+      record.blockedUntil = now + blockDuration;
+    }
+
+    this.attempts.set(identifier, record);
+
+    // Limpeza periódica (1% de chance)
+    if (Math.random() < 0.01) {
+      this.cleanup();
+    }
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    const toDelete: string[] = [];
+
+    for (const [key, record] of this.attempts.entries()) {
+      // Delete if old and not blocked
+      if (record.blockedUntil === null && Math.random() < 0.5) {
+        toDelete.push(key);
+      }
+      // Delete if block time has long passed (+ 1 hour buffer)
+      else if (record.blockedUntil && now > record.blockedUntil + 3600000) {
+        toDelete.push(key);
+      }
+    }
+
+    toDelete.forEach((key) => this.attempts.delete(key));
+  }
+}
+
+const loginRateLimiter = new LoginRateLimiter();
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -222,6 +301,93 @@ export default {
       }
 
       // Processar endpoints especiais (CSRF init, Webhook, etc)
+
+      // ============================================
+      // ENDPOINT: Rate-Limited Login (POST /api/login)
+      // ============================================
+      if (request.method === "POST" && url.pathname === "/api/login") {
+        try {
+          const body = await request.json() as { email?: string; password?: string };
+          const email = (body.email as string)?.toLowerCase().trim() || "";
+          const password = (body.password as string) || "";
+
+          // Validação básica
+          if (!email || !password) {
+            return new Response(
+              JSON.stringify({ error: "Email e senha são obrigatórios" }),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            );
+          }
+
+          // ✅ RATE LIMIT: Por email
+          const emailKey = `login-email:${email}`;
+          const emailCheck = loginRateLimiter.isAllowed(emailKey);
+          if (!emailCheck.allowed) {
+            securityLogger.log(
+              "suspicious",
+              clientIP,
+              request.headers.get("user-agent") || "",
+              `Login rate limit exceeded for email: ${email}`
+            );
+            return new Response(
+              JSON.stringify({
+                error: `Muitas tentativas. Tente novamente em ${emailCheck.remainingSeconds} segundos.`,
+                retryAfter: emailCheck.remainingSeconds,
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(emailCheck.remainingSeconds),
+                },
+              }
+            );
+          }
+
+          // ✅ RATE LIMIT: Por IP
+          const ipKey = `login-ip:${clientIP}`;
+          const ipCheck = loginRateLimiter.isAllowed(ipKey);
+          if (!ipCheck.allowed) {
+            securityLogger.log(
+              "suspicious",
+              clientIP,
+              request.headers.get("user-agent") || "",
+              `Login rate limit exceeded by IP`
+            );
+            return new Response(
+              JSON.stringify({
+                error: "IP bloqueado por múltiplas tentativas. Tente mais tarde.",
+                retryAfter: ipCheck.remainingSeconds,
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(ipCheck.remainingSeconds),
+                },
+              }
+            );
+          }
+
+          // ✅ TODO: Validar credenciais com Supabase
+          // Por enquanto, registrar tentativa como falha
+          loginRateLimiter.recordAttempt(emailKey);
+          loginRateLimiter.recordAttempt(ipKey);
+
+          logSecurityEvent("login_attempt", { email, ip: clientIP });
+
+          return new Response(
+            JSON.stringify({ error: "Credenciais inválidas" }),
+            { status: 401, headers: { "Content-Type": "application/json" } }
+          );
+        } catch (err) {
+          console.error("Erro ao processar login:", err);
+          return new Response(
+            JSON.stringify({ error: "Erro ao processar requisição" }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
+          );
+        }
+      }
 
       // Endpoint para inicialização de token CSRF (Define HttpOnly SameSite Cookie)
       if (request.method === "POST" && url.pathname === "/api/security/csrf-init") {
