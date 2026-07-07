@@ -300,19 +300,11 @@ export function assessIPRisk(ip: string, headers?: Headers): IPRiskAssessment {
     }
   }
 
-  // Verificar se é IP privado (não deveria estar acessando)
-  const ipParts = ip.split(".").map(Number);
-  const isPrivate =
-    ipParts[0] === 10 ||
-    (ipParts[0] === 172 && ipParts[1] >= 16 && ipParts[1] <= 31) ||
-    (ipParts[0] === 192 && ipParts[1] === 168) ||
-    ip === "127.0.0.1" ||
-    ip === "::1";
+  // NOTA: NÃO penalizamos IPs privados nem headers de proxy no score de
+  // bloqueio. Em produção o site roda atrás do edge/CDN da Lovable, então
+  // TODA requisição legítima chega com headers de proxy e, muitas vezes, com
+  // um IP encaminhado interno. Penalizar isso bloquearia usuários reais.
 
-  if (isPrivate) {
-    riskScore += 50;
-    reasons.push("IP privado detectado");
-  }
 
   return {
     ip,
@@ -330,16 +322,11 @@ export function assessIPRisk(ip: string, headers?: Headers): IPRiskAssessment {
  * Verifica se IP deve ser bloqueado
  */
 export function shouldBlockIP(assessment: IPRiskAssessment): boolean {
-  // Bloquear se:
-  // - TOR (risco >= 100)
-  // - VPN + VPS (risco >= 140)
-  // - Múltiplos indicadores (risco >= 100)
-
-  if (assessment.isTOR) return true;
-  if (assessment.isVPN && assessment.isVPS) return true;
-  if (assessment.riskScore >= 100) return true;
-
-  return false;
+  // Só bloqueamos de forma dura em caso de correspondência confiável com nó
+  // TOR conhecido. Faixas de VPN/VPS são muito amplas e mantidas à mão, então
+  // geram falsos positivos (Cloudflare, operadoras móveis, etc.) que derrubam
+  // usuários legítimos com "Access Denied". Esses casos ficam apenas em log.
+  return assessment.isTOR;
 }
 
 /**

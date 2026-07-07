@@ -91,16 +91,10 @@ export async function securityCheck(request: Request): Promise<{
 
     return { allowed: true };
   } catch (error) {
-    console.error("Error in security check:", error);
-    // Em caso de erro, bloquear a requisição (fail-closed)
-    return {
-      allowed: false,
-      reason: "Security check failed",
-      response: new Response("Service Unavailable", {
-        status: 503,
-        headers: { "Content-Type": "text/plain" },
-      }),
-    };
+    // Fail-open: uma falha interna na verificação de segurança NÃO deve
+    // derrubar o site inteiro para usuários legítimos. Apenas registramos.
+    console.error("Error in security check (fail-open):", error);
+    return { allowed: true };
   }
 }
 
