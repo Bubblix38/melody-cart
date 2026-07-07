@@ -233,35 +233,17 @@ export function sanitizeForConsole(data: unknown): unknown {
  */
 export function useDevToolsProtection() {
   const startProtection = () => {
-    // Proteger prototypes
-    protectPrototype();
-
-    // Iniciar anti-debug
-    const stopAntiDebug = antiDebug();
-
-    // Monitorar integridade de variáveis críticas
-    const stopMonitoring = integrityMonitor.startMonitoring(
-      ["cart", "userSession", "csrfToken"],
-      () => ({
-        cart: localStorage.getItem("topdj-cart"),
-        userSession: sessionStorage.getItem("supabase.auth.token"),
-        csrfToken: sessionStorage.getItem("topdj-csrf-token"),
-      }),
-    );
-
-    // Monitorar abertura de DevTools
-    const stopDevToolsMonitor = monitorDevTools((isOpen) => {
+    // Versão simplificada - apenas logging de DevTools
+    // Remover proteções agressivas que causam problemas
+    
+    monitorDevTools((isOpen) => {
       if (isOpen) {
-        console.warn("⚠️ DevTools detectado. Tenha cuidado ao manipular o código.");
-        // Opcional: Ações quando DevTools abre
-        // window.location.reload();
+        console.warn("⚠️ DevTools detectado. Monitorando atividades suspeitas.");
       }
     });
 
     return () => {
-      stopAntiDebug();
-      stopMonitoring();
-      stopDevToolsMonitor();
+      // Cleanup se necessário
     };
   };
 
