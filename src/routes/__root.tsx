@@ -112,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         httpEquiv: "Content-Security-Policy",
         content:
-          "default-src 'self'; script-src 'self' https://nwsjgacmraijqyvvghoh.supabase.co https://js.stripe.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; media-src 'self' https://nwsjgacmraijqyvvghoh.supabase.co; connect-src 'self' https://nwsjgacmraijqyvvghoh.supabase.co wss://nwsjgacmraijqyvvghoh.supabase.co https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;",
+          "default-src 'self'; script-src 'self' https://zcznaozaosciiffqncjo.supabase.co https://js.stripe.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; media-src 'self' https://zcznaozaosciiffqncjo.supabase.co; connect-src 'self' https://zcznaozaosciiffqncjo.supabase.co wss://zcznaozaosciiffqncjo.supabase.co https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;",
       },
       { name: "twitter:title", content: "TopDJ — Descubra e Compre os Melhores Álbuns" },
       { name: "description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
