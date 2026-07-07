@@ -40,6 +40,8 @@ const RATE_LIMITS = {
  * Gera fingerprint do dispositivo/navegador
  */
 export function generateDeviceFingerprint(): string {
+  if (!isBrowser) return 'server-fingerprint';
+  
   const navigator_info = {
     userAgent: navigator.userAgent,
     language: navigator.language,
@@ -153,15 +155,21 @@ export function checkRateLimit(
  * Registra tentativa de login (sucesso ou falha)
  */
 export async function recordLoginAttempt(email: string, success: boolean): Promise<void> {
-  const fingerprint = generateDeviceFingerprint();
-  const location = await getClientLocationInfo();
+  let fingerprint = 'server-fingerprint';
+  let location = { ip: 'unknown', country: 'unknown', city: 'unknown' };
+
+  // Apenas obter informações do cliente se estiver no navegador
+  if (isBrowser) {
+    fingerprint = generateDeviceFingerprint();
+    location = await getClientLocationInfo();
+  }
 
   const attempt: LoginAttempt = {
     email: email.toLowerCase(),
     ip: location.ip,
     country: location.country,
     city: location.city,
-    userAgent: navigator.userAgent,
+    userAgent: isBrowser ? navigator.userAgent : 'Unknown',
     timestamp: Date.now(),
     success,
     fingerprint,
