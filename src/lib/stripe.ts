@@ -17,7 +17,7 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
     const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Configuração do Supabase ausente no servidor (apiKey/URL)");
+      throw new Error("DEBUG: supabaseUrl: " + (supabaseUrl || "undefined") + ", supabaseKey: " + (supabaseKey || "undefined"));
     }
 
     const sb = createClient(supabaseUrl, supabaseKey, {
