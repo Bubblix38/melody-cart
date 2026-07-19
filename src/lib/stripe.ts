@@ -16,6 +16,7 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
 
     const stripe = new Stripe(stripeSecret, {
       apiVersion: "2024-04-10" as any,
+      httpClient: Stripe.createFetchHttpClient(),
     });
 
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -116,9 +117,14 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
       return { clientSecret: paymentIntent.client_secret };
     } catch (error: unknown) {
       console.error("Stripe error:", error);
-      throw new Error(
-        error instanceof Error ? error.message || "Erro no pagamento" : "Erro no pagamento",
-      );
+      let errorMessage = "Erro no pagamento";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        if (errorMessage.includes("An error occurred with our connection to Stripe")) {
+          errorMessage = "Falha de conexão com o Stripe. Desative bloqueadores de anúncios (AdBlock, Brave Shields) ou antivírus temporariamente.";
+        }
+      }
+      throw new Error(errorMessage);
     }
   });
 
@@ -132,6 +138,7 @@ export const verifyPaymentFn = createServerFn({ method: "POST" })
 
     const stripe = new Stripe(stripeSecret, {
       apiVersion: "2024-04-10" as any,
+      httpClient: Stripe.createFetchHttpClient(),
     });
 
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -192,6 +199,10 @@ export const verifyPaymentFn = createServerFn({ method: "POST" })
       return { success: true, status: paymentIntent.status, downloads };
     } catch (error: unknown) {
       console.error("Verify payment error:", error);
-      throw new Error("Erro ao verificar pagamento");
+      let errorMessage = "Erro ao verificar pagamento";
+      if (error instanceof Error && error.message.includes("An error occurred with our connection to Stripe")) {
+        errorMessage = "Falha de conexão com o Stripe. Desative bloqueadores de anúncios (AdBlock, Brave Shields) ou antivírus temporariamente.";
+      }
+      throw new Error(errorMessage);
     }
   });

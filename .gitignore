@@ -46,3 +46,5 @@ src/lib/dj/
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*
