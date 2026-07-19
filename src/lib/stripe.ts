@@ -9,7 +9,12 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
     (data: { items: CheckoutItem[]; email: string; nome: string; accessToken?: string }) => data,
   )
   .handler(async ({ data }) => {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+    const stripeSecret = process.env.STRIPE_SECRET_KEY as string;
+    if (!stripeSecret || stripeSecret === "COPIAR_SECRET_KEY_AQUI") {
+      throw new Error("Chave secreta do Stripe (STRIPE_SECRET_KEY) não configurada no servidor.");
+    }
+
+    const stripe = new Stripe(stripeSecret, {
       apiVersion: "2024-04-10" as any,
     });
 
@@ -120,7 +125,12 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
 export const verifyPaymentFn = createServerFn({ method: "POST" })
   .validator((data: { paymentIntentId: string }) => data)
   .handler(async ({ data }) => {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+    const stripeSecret = process.env.STRIPE_SECRET_KEY as string;
+    if (!stripeSecret || stripeSecret === "COPIAR_SECRET_KEY_AQUI") {
+      throw new Error("Chave secreta do Stripe (STRIPE_SECRET_KEY) não configurada no servidor.");
+    }
+
+    const stripe = new Stripe(stripeSecret, {
       apiVersion: "2024-04-10" as any,
     });
 

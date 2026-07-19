@@ -25,16 +25,16 @@ export const SECURITY_HEADERS = {
   // Content Security Policy
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-{NONCE}' https://*.supabase.co https://js.stripe.com",
-    "style-src 'self' 'unsafe-inline' 'nonce-{NONCE}'",
-    "img-src 'self' data: https:",
-    "font-src 'self' data: https://cdn.gpteng.co",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://js.stripe.com https://m.stripe.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data: https://cdn.gpteng.co https://fonts.gstatic.com",
     "media-src 'self' https://*.supabase.co",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
-    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://m.stripe.com https://*.stripe.network",
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://hooks.stripe.com",
   ].join("; "),
 
   // Referrer Policy

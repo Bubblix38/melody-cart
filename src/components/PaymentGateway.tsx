@@ -8,7 +8,8 @@ import type { CartItem } from "@/lib/cart";
 import { createPaymentIntentFn } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : Promise.resolve(null);
 
 export function PaymentGateway({
   items,
@@ -75,6 +76,11 @@ export function PaymentGateway({
           <p className="text-xs text-muted-foreground mt-2">
             Dica: Tente reiniciar o servidor de desenvolvimento.
           </p>
+        </div>
+      ) : !stripePublicKey ? (
+        <div className="flex flex-col h-32 items-center justify-center text-destructive text-center gap-2">
+          <p className="font-bold">Chave pública do Stripe ausente.</p>
+          <p className="text-sm opacity-80">Configure VITE_STRIPE_PUBLIC_KEY no seu ambiente.</p>
         </div>
       ) : !clientSecret ? (
         <div className="flex h-32 items-center justify-center text-muted-foreground">
