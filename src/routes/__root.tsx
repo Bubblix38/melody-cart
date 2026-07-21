@@ -159,6 +159,20 @@ function RootComponent() {
   const { startProtection } = useDevToolsProtection();
 
   useEffect(() => {
+    // Registrar Service Worker para modo offline PWA
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(
+          (registration) => {
+            console.log("Service Worker registrado com sucesso:", registration.scope);
+          },
+          (err) => {
+            console.error("Falha ao registrar Service Worker:", err);
+          }
+        );
+      });
+    }
+
     const stopProtection = startProtection();
     if (localStorage.getItem("HONEYPOT_BANNED") === "true") {
       logSecurityEvent("honeypot_triggered", { note: "Usuário bloqueado permanentemente retornou" });

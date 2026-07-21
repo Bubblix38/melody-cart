@@ -37,7 +37,17 @@ export default defineConfig({
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          navigateFallback: null,
           runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'pages-cache',
+                expiration: { maxEntries: 50 },
+                cacheableResponse: { statuses: [0, 200] }
+              }
+            },
             {
               urlPattern: /^https:\/\/zcznaozaosciiffqncjo\.supabase\.co\/rest\/v1\/.*/i,
               handler: 'NetworkFirst',
