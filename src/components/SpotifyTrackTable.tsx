@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Clock, Play, Pause, Heart, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Play, Pause, Heart, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
 import { Pack } from "@/lib/packs";
 import { Track } from "@/lib/tracks";
 import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
@@ -69,8 +69,8 @@ const MemoizedTrackRow = React.memo(({
         isActive && "bg-white/5"
       )}
     >
-      {/* Number / Play button */}
-      <div className="relative flex items-center justify-center">
+      {/* Number / Play button (Hidden on mobile) */}
+      <div className="relative hidden md:flex items-center justify-center">
         {isActive && isPlaying ? (
           <button onClick={togglePlayer} className="text-spotify-green">
             <Pause fill="currentColor" className="w-4 h-4" />
@@ -97,7 +97,7 @@ const MemoizedTrackRow = React.memo(({
         <img 
           src={pack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=50&h=50&fit=crop"} 
           alt={track.title}
-          className="w-10 h-10 object-cover rounded bg-spotify-highlight shrink-0"
+          className="w-12 h-12 md:w-10 md:h-10 object-cover rounded bg-spotify-highlight shrink-0"
         />
         <div className="flex flex-col overflow-hidden">
           <span onClick={() => onPlay(track)} className={cn("font-medium truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>{track.title}</span>
@@ -120,18 +120,24 @@ const MemoizedTrackRow = React.memo(({
       </div>
 
       {/* Duration & Actions */}
-      <div className="flex items-center justify-end gap-3 text-sm pr-2">
+      <div className="flex items-center justify-end gap-3 text-sm pr-1 md:pr-2 text-spotify-subtext">
         <button 
-          onClick={() => onToggleLike(track.id, isLiked)}
+          onClick={(e) => { e.stopPropagation(); onToggleLike(track.id, isLiked); }}
           disabled={isPendingLike}
           className={cn(
-            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50",
+            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50 hidden md:block",
             isLiked ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-white hover:text-white"
           )}
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
         </button>
-        <TrackDuration track={track} />
+        <div className="hidden md:block">
+          <TrackDuration track={track} />
+        </div>
+        {/* Mobile three dots */}
+        <button className="md:hidden p-2 text-spotify-subtext hover:text-white transition-colors">
+          <MoreVertical className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
@@ -281,7 +287,7 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
     <div className="w-full text-spotify-subtext pb-20 select-none" style={gridStyle}>
       {/* Table Header */}
       <div 
-        className="grid gap-2 md:gap-4 px-4 md:px-8 py-2 border-b border-white/10 text-xs font-medium uppercase tracking-wider mb-2 sticky top-0 bg-[#121212] z-30 pt-4 group/header track-grid-mobile"
+        className="hidden md:grid gap-4 px-8 py-2 border-b border-white/10 text-xs font-medium uppercase tracking-wider mb-2 sticky top-0 bg-[#121212] z-30 pt-4 group/header track-grid-mobile"
       >
         <div className="text-center">#</div>
         
