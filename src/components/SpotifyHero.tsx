@@ -22,8 +22,8 @@ export function SpotifyHero({
   onPlay
 }: SpotifyHeroProps) {
   return (
-    <div className="relative pt-12 md:pt-20 pb-4 md:pb-6 px-4 md:px-8 rounded-t-lg bg-gradient-to-b from-indigo-800/80 to-spotify-base">
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-end relative z-10">
+    <div className="relative pt-8 md:pt-20 pb-4 md:pb-6 px-4 md:px-8 md:rounded-t-lg bg-gradient-to-b from-indigo-900 via-indigo-900/60 to-[#121212]">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-end relative z-10 pt-4 md:pt-0">
         <img 
           src={imageUrl} 
           alt={title}

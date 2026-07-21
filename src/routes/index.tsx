@@ -92,7 +92,7 @@ function Index() {
   }, { scope: containerRef });
 
   return (
-    <div ref={containerRef} className="h-[calc(100vh-56px)] w-full flex bg-transparent overflow-hidden p-2 gap-2 text-white font-sans selection:bg-spotify-green/30">
+    <div ref={containerRef} className="h-[calc(100vh-56px)] w-full flex bg-black md:bg-transparent overflow-x-hidden md:overflow-hidden md:p-2 md:gap-2 text-white font-sans selection:bg-spotify-green/30">
       
       {/* Barra Lateral Esquerda */}
       <div className="hidden lg:flex gsap-sidebar-left shrink-0 will-change-transform">
@@ -100,7 +100,7 @@ function Index() {
       </div>
 
       {/* Área Central Principal */}
-      <main className="flex-1 bg-spotify-base rounded-lg overflow-y-auto custom-scrollbar relative flex flex-col">
+      <main className="flex-1 min-w-0 bg-[#121212] md:rounded-lg overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col relative z-10 w-full">
         <div className="gsap-hero will-change-transform">
           {spotlightPack && (
             <SpotifyHero 
@@ -116,7 +116,7 @@ function Index() {
           )}
         </div>
 
-        <div className="gsap-tracks flex-1 w-full relative z-20 bg-gradient-to-b from-black/20 to-spotify-base will-change-transform">
+        <div className="gsap-tracks flex-1 w-full relative z-20 bg-transparent md:bg-gradient-to-b from-black/20 to-spotify-base will-change-transform">
           <SpotifyTrackTable tracks={tracks} pack={spotlightPack} />
         </div>
       </main>
