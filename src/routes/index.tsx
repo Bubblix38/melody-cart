@@ -97,7 +97,7 @@ function Index() {
     <div ref={containerRef} className="h-[calc(100vh-56px)] w-full flex bg-transparent overflow-hidden p-2 gap-2 text-white font-sans selection:bg-spotify-green/30">
       
       {/* Barra Lateral Esquerda */}
-      <div className="gsap-sidebar-left flex shrink-0 will-change-transform">
+      <div className="hidden lg:flex gsap-sidebar-left shrink-0 will-change-transform">
         <Suspense fallback={<div className="w-[280px] bg-black" />}>
           <SpotifySidebar />
         </Suspense>
@@ -128,7 +128,7 @@ function Index() {
       </main>
 
       {/* Barra Lateral Direita */}
-      <div className="gsap-sidebar-right flex shrink-0 will-change-transform">
+      <div className="hidden xl:flex gsap-sidebar-right shrink-0 will-change-transform">
         <Suspense fallback={<div className="w-[300px] bg-black" />}>
           <SpotifyRightSidebar pack={spotlightPack} />
         </Suspense>
