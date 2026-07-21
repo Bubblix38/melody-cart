@@ -94,8 +94,14 @@ export function FixedPlayer() {
   }
 
   return (
-    <div className="fixed bottom-0 z-50 h-16 w-full border-t border-white/10 glass-nav px-4 md:px-6">
-      <div className="mx-auto flex h-full max-w-[1440px] items-center gap-4 md:gap-10">
+    <div className="fixed bottom-2 md:bottom-0 z-50 h-14 md:h-16 w-[calc(100%-16px)] left-2 md:left-0 md:w-full rounded-lg md:rounded-none overflow-hidden bg-[#5a3630] md:bg-transparent md:glass-nav md:border-t md:border-white/10 px-2 md:px-6 transition-all shadow-xl md:shadow-none">
+      
+      {/* Barra de Progresso Mobile */}
+      <div className="absolute bottom-0 left-0 h-[2px] bg-white/30 w-full md:hidden rounded-b-lg overflow-hidden">
+        <div className="h-full bg-white transition-all" style={{ width: `${progress * 100}%` }} />
+      </div>
+
+      <div className="mx-auto flex h-full max-w-[1440px] items-center gap-2 md:gap-10">
         {/* Controls */}
         <div className="flex shrink-0 items-center gap-3 md:gap-5">
           <button
@@ -109,13 +115,13 @@ export function FixedPlayer() {
           <button
             onClick={toggle}
             disabled={!current}
-            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 disabled:opacity-40 disabled:hover:scale-100"
+            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full md:bg-white text-white md:text-black shadow-none md:shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 disabled:opacity-40 disabled:hover:scale-100"
             aria-label={isPlaying ? "Pausar" : "Tocar"}
           >
             {isPlaying ? (
-              <Pause className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+              <Pause className="h-5 w-5 md:h-5 md:w-5 fill-current" />
             ) : (
-              <Play className="h-4 w-4 md:h-5 md:w-5 fill-current ml-0.5" />
+              <Play className="h-5 w-5 md:h-5 md:w-5 fill-current" />
             )}
           </button>
           <button
@@ -150,8 +156,27 @@ export function FixedPlayer() {
           </button>
         </div>
 
-        {/* Progress Bar (Waveform Style) */}
-        <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-4 text-[9px] md:text-[10px] font-bold font-mono">
+        {/* Current Track Info (Moved to left on mobile) */}
+        <div className="flex flex-1 md:flex-none md:w-48 shrink-0 items-center gap-2 md:gap-3 min-w-0 order-first md:order-none cursor-pointer">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-white/5 shadow-md">
+            {current?.coverUrl ? (
+              <img src={current.coverUrl} alt={current.title} className="h-full w-full object-cover" />
+            ) : (
+              <Music2 className="h-4 w-4 text-white/40" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm md:text-xs font-bold text-white tracking-tight">
+              {current?.title ?? "Nada tocando"}
+            </p>
+            <p className="truncate text-[11px] md:text-[9px] font-medium md:font-bold md:uppercase tracking-wide md:tracking-widest text-white/70 md:text-white/40">
+              {current?.artist ?? "TopDJ"}
+            </p>
+          </div>
+        </div>
+
+        {/* Progress Bar (Waveform Style) - Hidden on Mobile */}
+        <div className="hidden md:flex min-w-0 flex-1 items-center gap-2 md:gap-4 text-[9px] md:text-[10px] font-bold font-mono">
           <span className="shrink-0 text-primary">{formatTime(currentTime)}</span>
           <Waveform
             progress={progress}
@@ -164,33 +189,18 @@ export function FixedPlayer() {
           <span className="shrink-0 text-white/40">{formatTime(duration)}</span>
         </div>
 
-        {/* Current Track Info */}
-        <div className="flex w-32 md:w-48 shrink-0 items-center gap-2 md:gap-3 min-w-0">
-          <div className="flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center overflow-hidden rounded border border-white/10 bg-white/5 shadow-md">
-            {current?.coverUrl ? (
-              <img src={current.coverUrl} alt={current.title} className="h-full w-full object-cover" />
-            ) : (
-              <Music2 className="h-4 w-4 text-white/40" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1 hidden sm:block">
-            <p className="truncate text-[10px] md:text-xs font-bold text-white uppercase tracking-tight">
-              {current?.title ?? "Nada tocando"}
-            </p>
-            <p className="truncate text-[8px] md:text-[9px] font-bold uppercase tracking-widest text-white/40">
-              {current?.artist ?? "TopDJ"}
-            </p>
-          </div>
+        {/* Heart icon (Moved next to play on mobile) */}
+        <div className="flex items-center">
           <button
             onClick={handleToggleLike}
             disabled={toggleLikeMutation.isPending}
             className={cn(
               "transition-colors shrink-0 disabled:opacity-50",
-              isLiked ? "text-primary" : "text-white/40 hover:text-white",
+              isLiked ? "text-primary" : "text-white/70 md:text-white/40 hover:text-white",
             )}
             aria-label="Curtir"
           >
-            <Heart className={cn("h-3.5 w-3.5 md:h-4 md:w-4", isLiked && "fill-current")} />
+            <Heart className={cn("h-5 w-5 md:h-4 md:w-4", isLiked && "fill-current")} />
           </button>
         </div>
 
