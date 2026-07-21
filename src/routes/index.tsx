@@ -6,13 +6,11 @@ import { fetchTracks } from "@/lib/tracks";
 import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-
-import React, { Suspense } from "react";
 import { SpotifyTrackTable } from "@/components/SpotifyTrackTable";
 
-const SpotifySidebar = React.lazy(() => import("@/components/SpotifySidebar").then(m => ({ default: m.SpotifySidebar })));
-const SpotifyHero = React.lazy(() => import("@/components/SpotifyHero").then(m => ({ default: m.SpotifyHero })));
-const SpotifyRightSidebar = React.lazy(() => import("@/components/SpotifyRightSidebar").then(m => ({ default: m.SpotifyRightSidebar })));
+import { SpotifySidebar } from "@/components/SpotifySidebar";
+import { SpotifyHero } from "@/components/SpotifyHero";
+import { SpotifyRightSidebar } from "@/components/SpotifyRightSidebar";
 
 const packsQuery = queryOptions({
   queryKey: ["packs"],
@@ -98,27 +96,23 @@ function Index() {
       
       {/* Barra Lateral Esquerda */}
       <div className="hidden lg:flex gsap-sidebar-left shrink-0 will-change-transform">
-        <Suspense fallback={<div className="w-[280px] bg-black" />}>
-          <SpotifySidebar />
-        </Suspense>
+        <SpotifySidebar />
       </div>
 
       {/* Área Central Principal */}
       <main className="flex-1 bg-spotify-base rounded-lg overflow-y-auto custom-scrollbar relative flex flex-col">
         <div className="gsap-hero will-change-transform">
           {spotlightPack && (
-            <Suspense fallback={<div className="h-[250px] bg-white/5 animate-pulse" />}>
-              <SpotifyHero 
-                title={spotlightPack.nome || "FUNK COM ELETRÔNICA"}
-                description={spotlightPack.descricao || "CLIQUE NO (+) PARA RECEBER MÚSICA NOVA TODA SEMANA — funk com música eletrônica, tech house e outras..."}
-                imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=400&h=400&fit=crop"}
-                creator={spotlightPack.dj || "TopDJ Records"}
-                likes={Math.floor(Math.random() * 900 + 100).toString() + "k"}
-                songsCount={tracks.length.toString()}
-                duration="3h 30min"
-                onPlay={handlePlayHero}
-              />
-            </Suspense>
+            <SpotifyHero 
+              title={spotlightPack.nome || "FUNK COM ELETRÔNICA"}
+              description={spotlightPack.descricao || "CLIQUE NO (+) PARA RECEBER MÚSICA NOVA TODA SEMANA — funk com música eletrônica, tech house e outras..."}
+              imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=400&h=400&fit=crop"}
+              creator={spotlightPack.dj || "TopDJ Records"}
+              likes={Math.floor(Math.random() * 900 + 100).toString() + "k"}
+              songsCount={tracks.length.toString()}
+              duration="3h 30min"
+              onPlay={handlePlayHero}
+            />
           )}
         </div>
 
@@ -129,9 +123,7 @@ function Index() {
 
       {/* Barra Lateral Direita */}
       <div className="hidden xl:flex gsap-sidebar-right shrink-0 will-change-transform">
-        <Suspense fallback={<div className="w-[300px] bg-black" />}>
-          <SpotifyRightSidebar pack={spotlightPack} />
-        </Suspense>
+        <SpotifyRightSidebar pack={spotlightPack} />
       </div>
 
     </div>
