@@ -286,6 +286,25 @@ export async function getUserReposts(): Promise<RepostedTrack[]> {
   return data as RepostedTrack[];
 }
 
+export type LikedTrack = RepostedTrack;
+
+export async function getUserLikedTracks(): Promise<LikedTrack[]> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return [];
+
+  const db = supabase as unknown as { from: (t: string) => any };
+  const { data, error } = await db
+    .from("track_likes")
+    .select("track_id, created_at, tracks ( id, title, audio_url, pack_id, packs ( nome, imagem_url, genero ) )")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data as LikedTrack[];
+}
+
 // ============================================================
 // Versões em lote (evitam N+1 requisições ao renderizar listas
 // grandes de faixas, como um álbum inteiro).
