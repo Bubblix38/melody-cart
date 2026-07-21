@@ -82,6 +82,7 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
       });
 
       if (!process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY === "COPIAR_SERVICE_ROLE_KEY_AQUI") {
+        console.error("SUPABASE_SERVICE_ROLE_KEY missing. Using anon client may fail for write operations.");
         throw new Error("SUPABASE_SERVICE_ROLE_KEY não está configurada no servidor (Vercel/Local).");
       }
       
@@ -100,7 +101,9 @@ export const createPaymentIntentFn = createServerFn({ method: "POST" })
 
       if (pedidoError || !pedido) {
         console.error("Erro ao salvar pedido:", pedidoError);
-        throw new Error("Erro ao registrar pedido.");
+        // Include Supabase response for debugging
+        const detailedMsg = pedidoError?.message || "unknown error";
+        throw new Error(`Erro ao registrar pedido: ${detailedMsg}`);
       }
 
       // Inserir itens (pack ou track, conforme o tipo)

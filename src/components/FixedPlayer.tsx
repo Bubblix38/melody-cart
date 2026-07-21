@@ -14,6 +14,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAudioPlayer } from "@/lib/audio-player";
 import { Waveform } from "@/components/Waveform";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { hasUserLikedTrack, likeTrack, unlikeTrack } from "@/lib/social";
 
 function formatTime(seconds: number): string {
   if (!seconds || !isFinite(seconds)) return "0:00";
@@ -42,7 +44,47 @@ export function FixedPlayer() {
     toggleRepeat,
   } = useAudioPlayer();
 
-  const [isLiked, setIsLiked] = useState(false);
+  const queryClient = useQueryClient();
+  const trackId = current?.id;
+
+  const { data: isLiked = false } = useQuery({
+    queryKey: ["likedTrack", trackId],
+    queryFn: async () => {
+      if (!trackId) return false;
+      return await hasUserLikedTrack(trackId);
+    },
+    enabled: !!trackId,
+  });
+
+  const toggleLikeMutation = useMutation({
+    mutationFn: async (currentlyLiked: boolean) => {
+      if (!trackId) return false;
+      if (currentlyLiked) {
+        await unlikeTrack(trackId);
+      } else {
+        await likeTrack(trackId);
+      }
+      return !currentlyLiked;
+    },
+    onSuccess: (newIsLiked) => {
+      if (!trackId) return;
+      // Atualiza o estado deste player
+      queryClient.setQueryData(["likedTrack", trackId], newIsLiked);
+      // Atualiza o estado da tabela principal em tempo real!
+      queryClient.setQueriesData({ queryKey: ["likedTracksBulk"] }, (old: Set<string> | undefined) => {
+        if (!old) return old;
+        const newSet = new Set(old);
+        if (newIsLiked) newSet.add(trackId);
+        else newSet.delete(trackId);
+        return newSet;
+      });
+    }
+  });
+
+  const handleToggleLike = () => {
+    if (!trackId) return;
+    toggleLikeMutation.mutate(isLiked);
+  };
 
   const progress = duration > 0 ? currentTime / duration : 0;
 
@@ -140,9 +182,10 @@ export function FixedPlayer() {
             </p>
           </div>
           <button
-            onClick={() => setIsLiked((l) => !l)}
+            onClick={handleToggleLike}
+            disabled={toggleLikeMutation.isPending}
             className={cn(
-              "transition-colors shrink-0",
+              "transition-colors shrink-0 disabled:opacity-50",
               isLiked ? "text-primary" : "text-white/40 hover:text-white",
             )}
             aria-label="Curtir"

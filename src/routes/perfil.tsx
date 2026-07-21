@@ -1,20 +1,24 @@
+import { useRef } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User, Camera, MapPin, Edit3, Save, X, Repeat, Download, Play, Pause } from "lucide-react";
+import { LogOut, User, Camera, Edit3, Save, X, MoreHorizontal, Clock, Play, Pause, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { TrackRow } from "@/components/TrackRow";
 import { fetchPacks } from "@/lib/packs";
-import { getSavedTrackIds, getUserReposts } from "@/lib/social";
+import { getSavedTrackIds, getUserLikedTracks } from "@/lib/social";
 import { getUserDownloads } from "@/lib/orders";
 import { getProfile, updateProfile, uploadImage, type UserProfile } from "@/lib/profile";
 import { packImage } from "@/lib/pack-images";
-import { useAudioPlayer } from "@/lib/audio-player";
+import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
 import { cn } from "@/lib/utils";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+import { SpotifySidebar } from "@/components/SpotifySidebar";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
@@ -23,6 +27,32 @@ export const Route = createFileRoute("/perfil")({
   component: Perfil,
 });
 
+function TrackDuration({ audioUrl }: { audioUrl: string }) {
+  const [duration, setDuration] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!audioUrl) return;
+    const audio = new Audio(audioUrl);
+    const onLoadedMetadata = () => {
+      if (audio.duration && audio.duration !== Infinity) {
+        setDuration(audio.duration);
+      }
+    };
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    return () => {
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.src = "";
+    };
+  }, [audioUrl]);
+
+  if (!duration) return <span>--:--</span>;
+  return (
+    <span>
+      {Math.floor(duration / 60)}:{(Math.floor(duration % 60)).toString().padStart(2, '0')}
+    </span>
+  );
+}
+
 function Perfil() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -30,8 +60,8 @@ function Perfil() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
@@ -56,20 +86,20 @@ function Perfil() {
     enabled: !!user,
   });
 
-  const { data: allPacks = [], isLoading } = useQuery({
+  const { data: allPacks = [] } = useQuery({
     queryKey: ["packs"],
     queryFn: fetchPacks,
   });
 
   const savedPacks = allPacks.filter((p) => savedIds.includes(p.id));
 
-  const { data: reposts = [] } = useQuery({
-    queryKey: ["userReposts"],
-    queryFn: getUserReposts,
+  const { data: likedTracks = [] } = useQuery({
+    queryKey: ["userLikedTracks"],
+    queryFn: getUserLikedTracks,
     enabled: !!user,
   });
 
-  const { data: downloads = [], isLoading: isLoadingDownloads } = useQuery({
+  const { data: downloads = [] } = useQuery({
     queryKey: ["userDownloads"],
     queryFn: getUserDownloads,
     enabled: !!user,
@@ -102,16 +132,13 @@ function Perfil() {
     setIsEditing(true);
   }
 
-  async function handleImageUpload(
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "avatars" | "banners",
-  ) {
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, type: "avatars" | "banners") {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
 
     try {
       setUploadingImage(true);
-      toast.loading(`Enviando ${type === "avatars" ? "foto" : "banner"}...`, { id: "upload" });
+      toast.loading(`Enviando foto...`, { id: "upload" });
       const url = await uploadImage(file, type);
       await updateProfile({ [type === "avatars" ? "avatar_url" : "banner_url"]: url });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -123,356 +150,303 @@ function Perfil() {
     }
   }
 
+  useGSAP(() => {
+    if (!containerRef.current) return;
+    const tl = gsap.timeline();
+    tl.fromTo(".gsap-sidebar-left", 
+      { x: -50, opacity: 0 }, 
+      { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
+    )
+    .fromTo(".gsap-profile-header",
+      { y: -30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
+      "-=0.4"
+    )
+    .fromTo(".gsap-profile-content",
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
+      "-=0.5"
+    );
+  }, { scope: containerRef });
+
   if (!user) return null;
 
-  // Derivar imagens a mostrar
   const displayAvatar = profile?.avatar_url || user.user_metadata?.avatar_url;
-  const displayBanner =
-    profile?.banner_url ||
-    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=2574&auto=format&fit=crop";
-  const displayNome =
-    profile?.apelido || profile?.nome_completo || user.user_metadata?.full_name || "Membro TopDJ";
-  const displaySubNome = profile?.apelido ? profile.nome_completo : "";
-  const displayLocation = profile?.cidade
-    ? `${profile.cidade}${profile.estado ? `, ${profile.estado}` : ""}`
-    : "";
+  const displayNome = profile?.apelido || profile?.nome_completo || user.user_metadata?.full_name || "Membro TopDJ";
+
+  const queue: PlayerTrack[] = likedTracks.map((r) => {
+    const track = r.tracks!;
+    return {
+      id: track.id,
+      title: track.title,
+      artist: displayNome,
+      audioUrl: track.audio_url,
+      coverUrl: track.packs?.imagem_url ? packImage(track.packs.imagem_url, track.packs.genero) : "",
+    };
+  });
+
+  const handlePlayRepost = (trackId: string) => {
+    if (current?.id === trackId) {
+      toggle();
+      return;
+    }
+    const track = queue.find(t => t.id === trackId);
+    if (track) play(track, queue);
+  };
 
   return (
-    <div className="bg-background min-h-screen pb-12">
-      {/* BANNER GIGANTE */}
-      <div className="relative w-full h-[300px] md:h-[350px] bg-muted overflow-hidden group">
-        <img src={displayBanner} alt="Banner" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+    <div ref={containerRef} className="h-[calc(100vh-56px)] w-full flex bg-transparent overflow-hidden p-2 gap-2 text-white font-sans selection:bg-spotify-green/30">
+      
+      {/* Barra Lateral Esquerda */}
+      <div className="gsap-sidebar-left flex shrink-0">
+        <SpotifySidebar />
+      </div>
 
-        {/* Trocar capa: sempre disponível, visível ao passar o mouse (ou sempre em mobile) */}
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          ref={bannerInputRef}
-          onChange={(e) => handleImageUpload(e, "banners")}
-        />
-        <button
-          onClick={() => bannerInputRef.current?.click()}
-          disabled={uploadingImage}
-          className="absolute top-20 left-4 flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-sm font-semibold text-white opacity-100 transition-opacity hover:bg-black/70 disabled:opacity-50 md:opacity-0 md:group-hover:opacity-100 z-10"
-        >
-          <Camera className="w-4 h-4" />
-          {uploadingImage ? "Enviando..." : "Trocar capa"}
-        </button>
+      {/* Área Central Principal */}
+      <main className="flex-1 bg-spotify-base rounded-lg overflow-y-auto custom-scrollbar relative flex flex-col">
+        
+        {/* Banner Gradiente Estilo Spotify */}
+        <div className="gsap-profile-header relative flex items-end px-8 pb-6 pt-24 bg-gradient-to-b from-[#8C157E] to-spotify-base shadow-2xl">
+          <div className="flex items-end gap-6 w-full relative z-10">
+            {/* Avatar Gigante */}
+            <div className="relative group shrink-0">
+              <div className="h-48 w-48 rounded-full border-4 border-transparent shadow-2xl overflow-hidden bg-[#282828] flex items-center justify-center">
+                {displayAvatar ? (
+                  <img src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-20 w-20 text-spotify-subtext" />
+                )}
+                
+                {/* Overlay de edição (visível no hover) */}
+                <div 
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer"
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  <Camera className="w-10 h-10 mb-2" />
+                  <span className="text-sm font-semibold">Escolher foto</span>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={avatarInputRef}
+                onChange={(e) => handleImageUpload(e, "avatars")}
+              />
+            </div>
 
-        {/* Botão de Logout */}
-        <div className="absolute top-20 right-4 flex gap-2 z-10">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleLogout}
-            className="bg-black/50 text-white hover:bg-black/70 border-none"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
-        </div>
-
-        {/* CONTAINER DO PERFIL SOBREPOSTO */}
-        <div className="absolute bottom-6 left-4 md:left-10 flex items-end gap-4 md:gap-6 w-full max-w-5xl pr-4">
-          {/* Avatar */}
-          <div className="relative">
-            <div className="h-32 w-32 md:h-48 md:w-48 rounded-full border-4 border-black overflow-hidden bg-muted shadow-2xl flex items-center justify-center shrink-0">
-              {displayAvatar ? (
-                <img src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" />
+            {/* Informações do Perfil */}
+            <div className="flex flex-col gap-2 pb-2 flex-1">
+              {!isEditing ? (
+                <>
+                  <span className="text-sm font-medium uppercase tracking-widest text-white/90">Perfil</span>
+                  <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
+                    {displayNome}
+                  </h1>
+                  <div className="flex items-center gap-2 text-sm text-white/90 font-medium mt-3">
+                    <span className="text-white">{savedPacks.length} playlists salvas</span>
+                    <span>•</span>
+                    <span>{likedTracks.length} faixas curtidas</span>
+                    <span>•</span>
+                    <span>{downloads.length} compras</span>
+                  </div>
+                </>
               ) : (
-                <User className="h-16 w-16 text-muted-foreground" />
+                <div className="bg-black/40 p-4 rounded-xl space-y-3 w-full max-w-md border border-white/10 backdrop-blur-md">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-white/70 text-xs">Apelido Artístico</Label>
+                      <Input
+                        className="bg-black/50 border-white/20 text-white h-8 text-sm"
+                        placeholder="Ex: DJ Bubbli"
+                        value={editForm.apelido || ""}
+                        onChange={(e) => setEditForm({ ...editForm, apelido: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/70 text-xs">Nome Real</Label>
+                      <Input
+                        className="bg-black/50 border-white/20 text-white h-8 text-sm"
+                        placeholder="Seu nome"
+                        value={editForm.nome_completo || ""}
+                        onChange={(e) => setEditForm({ ...editForm, nome_completo: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/70 text-xs">Cidade</Label>
+                      <Input
+                        className="bg-black/50 border-white/20 text-white h-8 text-sm"
+                        placeholder="Ex: Guarapari"
+                        value={editForm.cidade || ""}
+                        onChange={(e) => setEditForm({ ...editForm, cidade: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/70 text-xs">Estado</Label>
+                      <Input
+                        className="bg-black/50 border-white/20 text-white h-8 text-sm"
+                        placeholder="Ex: ES"
+                        value={editForm.estado || ""}
+                        onChange={(e) => setEditForm({ ...editForm, estado: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      onClick={() => saveProfileMut.mutate(editForm)}
+                      disabled={saveProfileMut.isPending}
+                      className="bg-spotify-green hover:bg-[#1ed760] text-black font-bold border-none"
+                    >
+                      <Save className="w-4 h-4 mr-2" /> Salvar
+                    </Button>
+                    <Button size="sm" onClick={() => setIsEditing(false)} variant="ghost" className="text-white hover:bg-white/10">
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              ref={avatarInputRef}
-              onChange={(e) => handleImageUpload(e, "avatars")}
-            />
-            <button
-              disabled={uploadingImage}
-              onClick={() => avatarInputRef.current?.click()}
-              className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-primary text-primary-foreground p-2 md:p-3 rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50"
-              aria-label="Trocar foto de perfil"
+          </div>
+        </div>
+
+        {/* Conteúdo Abaixo do Banner */}
+        <div className="gsap-profile-content flex-1 w-full bg-gradient-to-b from-black/20 to-spotify-base px-8 py-6 relative z-20">
+          
+          {/* Action Bar */}
+          <div className="flex items-center gap-6 mb-10">
+            {likedTracks.length > 0 && (
+              <button 
+                onClick={() => handlePlayRepost(queue[0].id)}
+                className="w-14 h-14 bg-spotify-green hover:bg-[#1ed760] hover:scale-105 rounded-full flex items-center justify-center text-black transition-all shadow-[0_8px_8px_rgba(0,0,0,0.3)]"
+              >
+                {isPlaying && current?.id === queue[0].id ? (
+                  <Pause className="w-6 h-6 fill-current" />
+                ) : (
+                  <Play className="w-6 h-6 fill-current ml-1" />
+                )}
+              </button>
+            )}
+            
+            {!isEditing && (
+              <button 
+                onClick={startEditing}
+                className="p-2 text-spotify-subtext hover:text-white transition-colors"
+                title="Editar Perfil"
+              >
+                <MoreHorizontal className="w-8 h-8" />
+              </button>
+            )}
+
+            <button 
+              onClick={handleLogout}
+              className="p-2 text-spotify-subtext hover:text-white transition-colors ml-auto flex items-center gap-2 font-bold text-sm"
             >
-              <Camera className="w-4 h-4 md:w-5 md:h-5" />
+              <LogOut className="w-5 h-5" />
+              Sair
             </button>
           </div>
 
-          {/* Textos: Nome, Sobrenome, Local */}
-          <div className="flex-1 pb-2 md:pb-4 text-white">
-            {!isEditing ? (
-              <div className="flex flex-col gap-1.5 items-start">
-                <h1 className="text-2xl md:text-4xl font-black tracking-tight bg-black/60 px-3 py-1 rounded inline-block">
-                  {displayNome}
-                </h1>
-                {displaySubNome && (
-                  <h2 className="text-sm md:text-base font-semibold bg-black/60 px-2 py-0.5 rounded text-white/90 inline-block">
-                    {displaySubNome}
-                  </h2>
-                )}
-                {displayLocation && (
-                  <div className="flex items-center gap-1 text-xs md:text-sm text-white/80 font-medium bg-black/60 px-2 py-1 rounded mt-1 inline-flex">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {displayLocation}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-black/70 p-4 rounded-xl space-y-3 w-full max-w-md border border-white/10 backdrop-blur-md">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-white/70 text-xs">Apelido Artístico</Label>
-                    <Input
-                      className="bg-black/50 border-white/20 text-white h-8 text-sm"
-                      placeholder="Ex: DJ Bubbli"
-                      value={editForm.apelido || ""}
-                      onChange={(e) => setEditForm({ ...editForm, apelido: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/70 text-xs">Nome Real</Label>
-                    <Input
-                      className="bg-black/50 border-white/20 text-white h-8 text-sm"
-                      placeholder="Seu nome"
-                      value={editForm.nome_completo || ""}
-                      onChange={(e) => setEditForm({ ...editForm, nome_completo: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/70 text-xs">Cidade</Label>
-                    <Input
-                      className="bg-black/50 border-white/20 text-white h-8 text-sm"
-                      placeholder="Ex: Guarapari"
-                      value={editForm.cidade || ""}
-                      onChange={(e) => setEditForm({ ...editForm, cidade: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/70 text-xs">Estado / País</Label>
-                    <Input
-                      className="bg-black/50 border-white/20 text-white h-8 text-sm"
-                      placeholder="Ex: ES, Brasil"
-                      value={editForm.estado || ""}
-                      onChange={(e) => setEditForm({ ...editForm, estado: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Músicas Mais Tocadas (Reposts / Curtidas) */}
+          <h2 className="text-2xl font-bold text-white mb-4">Músicas mais tocadas este mês</h2>
+          
+          {likedTracks.length === 0 ? (
+            <p className="text-spotify-subtext text-sm mb-12">Você ainda não curtiu nenhuma música.</p>
+          ) : (
+            <div className="w-full text-spotify-subtext mb-12">
+              <div className="flex flex-col">
+                {likedTracks.map((r, index) => {
+                  const track = r.tracks!;
+                  const isActive = current?.id === track.id;
+                  
+                  return (
+                    <div 
+                      key={r.track_id}
+                      onDoubleClick={() => handlePlayRepost(track.id)}
+                      className={cn(
+                        "group grid grid-cols-[32px_minmax(200px,4fr)_minmax(120px,2fr)_minmax(80px,1fr)] gap-4 px-4 py-2 hover:bg-white/10 rounded-md items-center cursor-default transition-colors",
+                        isActive && "bg-white/5"
+                      )}
+                    >
+                      <div className="relative flex items-center justify-center">
+                        {isActive && isPlaying ? (
+                          <button onClick={toggle} className="text-spotify-green">
+                            <Pause fill="currentColor" className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <>
+                            <span className="text-base group-hover:hidden">{index + 1}</span>
+                            <button onClick={() => handlePlayRepost(track.id)} className="hidden group-hover:block text-white">
+                              <Play fill="currentColor" className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
 
-          {/* Botões de Ação na Direita */}
-          <div className="hidden md:flex flex-col gap-2 pb-4 shrink-0">
-            {!isEditing ? (
-              <Button
-                onClick={startEditing}
-                variant="secondary"
-                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm border border-white/20"
-              >
-                <Edit3 className="w-4 h-4 mr-2" /> Editar Perfil
-              </Button>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Button
-                  onClick={() => saveProfileMut.mutate(editForm)}
-                  disabled={saveProfileMut.isPending}
-                  className="bg-[image:var(--gradient-primary)] text-white border-none shadow-lg"
+                      <div className="flex items-center gap-3 overflow-hidden pr-2">
+                        <img 
+                          src={track.packs?.imagem_url ? packImage(track.packs.imagem_url, track.packs.genero) : "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=50&h=50&fit=crop"} 
+                          alt={track.title}
+                          className="w-10 h-10 object-cover rounded bg-spotify-highlight shrink-0"
+                        />
+                        <div className="flex flex-col overflow-hidden">
+                          <span onClick={() => handlePlayRepost(track.id)} className={cn("font-medium truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>{track.title}</span>
+                        </div>
+                      </div>
+
+                      <div className="hidden md:flex items-center">
+                        <span className="text-sm truncate cursor-pointer hover:underline hover:text-white">
+                          {track.packs?.nome ?? "Faixa Avulsa"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-3 text-sm pr-2">
+                        <TrackDuration audioUrl={track.audio_url} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Playlists Públicas (Packs Salvos) */}
+          <div className="flex items-center justify-between mb-4 mt-8">
+            <h2 className="text-2xl font-bold text-white hover:underline cursor-pointer">Playlists públicas</h2>
+            <span className="text-sm font-bold text-spotify-subtext hover:underline cursor-pointer">Mostrar tudo</span>
+          </div>
+          
+          {savedPacks.length === 0 ? (
+            <p className="text-spotify-subtext text-sm mb-12">Você não possui nenhuma playlist pública salva.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-12">
+              {savedPacks.map((pack, idx) => (
+                <div 
+                  key={`${pack.id}-${idx}`} 
+                  onClick={() => navigate({ to: "/", search: { pack: pack.id } })}
+                  className="bg-[#181818] hover:bg-[#282828] p-4 rounded-md transition-colors group cursor-pointer flex flex-col relative"
                 >
-                  <Save className="w-4 h-4 mr-2" /> Salvar
-                </Button>
-                <Button
-                  onClick={() => setIsEditing(false)}
-                  variant="secondary"
-                  className="bg-black/50 text-white hover:bg-black/70 border-none"
-                >
-                  <X className="w-4 h-4 mr-2" /> Cancelar
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* MOBILE ACTION BUTTONS (abaixo do banner) */}
-      <div className="md:hidden flex gap-2 p-4 border-b border-border">
-        {!isEditing ? (
-          <Button onClick={startEditing} variant="outline" className="w-full">
-            <Edit3 className="w-4 h-4 mr-2" /> Editar Perfil
-          </Button>
-        ) : (
-          <>
-            <Button
-              onClick={() => saveProfileMut.mutate(editForm)}
-              disabled={saveProfileMut.isPending}
-              className="flex-1 bg-[image:var(--gradient-primary)]"
-            >
-              <Save className="w-4 h-4 mr-2" /> Salvar
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline" className="flex-1">
-              <X className="w-4 h-4 mr-2" /> Cancelar
-            </Button>
-          </>
-        )}
-      </div>
-
-      {/* MEUS DOWNLOADS (liberados após pagamento) */}
-      <div className="container mx-auto px-4 md:px-10 mt-8 max-w-7xl">
-        <h2 className="text-xl font-bold mb-6 pb-2 border-b border-border/50 flex items-center gap-2">
-          <Download className="w-5 h-5 text-primary" />
-          Meus Downloads
-        </h2>
-
-        {isLoadingDownloads ? (
-          <div className="flex items-center justify-center py-10 text-muted-foreground">
-            Carregando seu histórico...
-          </div>
-        ) : downloads.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center">
-            <p className="text-muted-foreground">
-              Você ainda não comprou nenhum álbum ou faixa. Seus downloads aparecem aqui após o
-              pagamento ser confirmado.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {downloads.map((d, idx) => (
-              <div
-                key={`${d.pedidoId}-${idx}`}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
-              >
-                <div>
-                  <p className="font-semibold">{d.nome}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {d.tipo === "pack" ? "Álbum completo" : "Faixa individual"} · Comprado em{" "}
-                    {new Date(d.comprado_em).toLocaleDateString("pt-BR")}
+                  <div className="w-full aspect-square mb-4 relative shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
+                    <img 
+                      src={pack.imagem_url ? packImage(pack.imagem_url, pack.genero) : "https://images.unsplash.com/photo-1493225457124-a1a2a5f5c92e?auto=format&w=200&h=200&fit=crop"} 
+                      alt={pack.nome} 
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                    <div className="absolute bottom-2 right-2 w-12 h-12 bg-spotify-green hover:bg-[#1ed760] hover:scale-105 rounded-full flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-all shadow-lg translate-y-2 group-hover:translate-y-0">
+                      <Play className="w-6 h-6 fill-current ml-1" />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-white truncate text-base mb-1">{pack.nome}</h3>
+                  <p className="text-spotify-subtext text-sm truncate">
+                    {pack.dj || "TopDJ Oficial"}
                   </p>
                 </div>
-                {d.url ? (
-                  <Button size="sm" className="gap-2 font-bold shrink-0" asChild>
-                    <a href={d.url} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4" /> Baixar
-                    </a>
-                  </Button>
-                ) : (
-                  <span className="text-xs text-muted-foreground italic shrink-0">
-                    Link ainda não disponível
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* REPOSTS (atalhos de faixas que o usuário repostou) */}
-      <div className="container mx-auto px-4 md:px-10 mt-10 max-w-7xl">
-        <h2 className="text-xl font-bold mb-6 pb-2 border-b border-border/50 flex items-center gap-2">
-          <Repeat className="w-5 h-5 text-primary" />
-          Reposts
-        </h2>
-
-        {reposts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center">
-            <p className="text-muted-foreground">
-              Faça repost de faixas que você gostou para elas aparecerem aqui como atalho.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {reposts.map((r) => {
-              const track = r.tracks;
-              if (!track) return null;
-              const isCurrent = current?.id === track.id;
-              const isThisPlaying = isCurrent && isPlaying;
-
-              function handlePlayRepost() {
-                if (isCurrent) {
-                  toggle();
-                } else {
-                  play({
-                    id: track!.id,
-                    title: track!.title,
-                    audioUrl: track!.audio_url,
-                    coverUrl: track!.packs?.imagem_url
-                      ? packImage(track!.packs.imagem_url, track!.packs.genero)
-                      : undefined,
-                  });
-                }
-              }
-
-              return (
-                <div
-                  key={r.track_id}
-                  className="flex items-center gap-4 rounded-lg border border-border bg-card p-3"
-                >
-                  <button
-                    onClick={handlePlayRepost}
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted overflow-hidden relative group"
-                  >
-                    {track.packs?.imagem_url && (
-                      <img
-                        src={packImage(track.packs.imagem_url, track.packs.genero)}
-                        alt={track.title}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isThisPlaying ? (
-                        <Pause className="h-5 w-5 text-white fill-current" />
-                      ) : (
-                        <Play className="h-5 w-5 text-white fill-current" />
-                      )}
-                    </span>
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <p className={cn("font-semibold truncate", isCurrent && "text-primary")}>
-                      {track.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {track.packs?.nome ?? "Álbum"}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* CONTEÚDO PRINCIPAL (Músicas) */}
-      <div className="container mx-auto px-4 md:px-10 mt-10 max-w-7xl">
-        <h2 className="text-xl font-bold mb-6 pb-2 border-b border-border/50">Músicas Salvas</h2>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            Carregando sua biblioteca...
-          </div>
-        ) : savedPacks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-muted/30 rounded-xl border border-dashed border-border">
-            <h3 className="text-xl font-bold mb-2">Sua biblioteca está vazia</h3>
-            <p className="text-muted-foreground max-w-md">
-              Você ainda não salvou nenhuma música. Volte para a loja e clique no botão de salvar
-              nas suas faixas favoritas!
-            </p>
-            <Button
-              className="mt-6 bg-[image:var(--gradient-primary)]"
-              onClick={() => navigate({ to: "/loja" })}
-            >
-              Explorar a Loja
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4 max-w-4xl">
-            {savedPacks.map((pack) => (
-              <TrackRow key={pack.id} pack={pack} />
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+          
+        </div>
+      </main>
     </div>
   );
 }

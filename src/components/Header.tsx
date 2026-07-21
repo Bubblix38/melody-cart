@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, ChevronDown, User, Disc3, ShoppingCart, Palette, Check, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -129,13 +129,6 @@ export function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3 lg:gap-6">
-          <button className="hidden rounded-md bg-primary/10 px-4 py-1.5 text-sm font-bold text-primary transition-colors hover:bg-primary/20 sm:block">
-            Atualizar agora
-          </button>
-          <a href="#" className="hidden text-sm text-white/60 transition-colors hover:text-white lg:block">
-            Estúdio de Artista
-          </a>
-
           {/* Profile & Cart */}
           <div className="flex items-center gap-4 border-l border-white/10 pl-6">
             <BackgroundThemePicker />

@@ -168,7 +168,7 @@ function RootComponent() {
             <BackgroundScene />
             <div className="flex min-h-screen flex-col pb-16">
               <Header />
-              <main className="flex-1">
+              <main className="flex-1 pt-14">
                 <Outlet />
               </main>
             </div>

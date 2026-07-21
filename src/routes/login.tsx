@@ -79,6 +79,9 @@ function Login() {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/perfil`,
+          queryParams: {
+            prompt: 'select_account',
+          },
         },
       });
       if (error) throw error;
