@@ -76,35 +76,7 @@ function Index() {
     // O react vai atualizar as setinhas verdes quando o estado isCached re-renderizar
   };
 
-  useGSAP(() => {
-    if (!containerRef.current) return;
-    
-    // Adicionando delay inicial para garantir renderização e "will-change" para aceleração de GPU
-    const tl = gsap.timeline({ delay: 0.1 });
-    
-    // Animate sidebars sliding in
-    tl.fromTo(".gsap-sidebar-left", 
-      { x: -50, opacity: 0 }, 
-      { x: 0, opacity: 1, duration: 0.5, ease: "power3.out", clearProps: "transform" }
-    )
-    .fromTo(".gsap-sidebar-right",
-      { x: 50, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.5, ease: "power3.out", clearProps: "transform" },
-      "<" 
-    )
-    // Animate hero scaling/fading in
-    .fromTo(".gsap-hero",
-      { y: 30, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, ease: "power2.out", clearProps: "transform" },
-      "-=0.3"
-    )
-    // Animate track list fading up
-    .fromTo(".gsap-tracks",
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, ease: "power2.out", clearProps: "transform" },
-      "-=0.4"
-    );
-  }, { scope: containerRef });
+  // Removido GSAP de opacity 0 que travava o carregamento do conteúdo central em alguns navegadores
 
   return (
     <div ref={containerRef} className="h-[calc(100vh-56px)] w-full flex bg-black md:bg-transparent overflow-x-hidden md:overflow-hidden md:p-2 md:gap-2 text-white font-sans selection:bg-spotify-green/30">
