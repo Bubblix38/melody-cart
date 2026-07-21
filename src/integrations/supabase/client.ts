@@ -7,7 +7,7 @@ function isNewSupabaseApiKey(value: string): boolean {
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
-  return (input, init) => {
+  return async (input, init) => {
     const headers = new Headers(
       typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
     );
@@ -25,7 +25,18 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set("apikey", supabaseKey);
-    return fetch(input, { ...init, headers });
+
+    try {
+      return await fetch(input, { ...init, headers });
+    } catch (err) {
+      // Quando o dispositivo está sem internet ou a requisição expira (TIMED_OUT),
+      // retornamos uma resposta simulada para evitar crash não tratado.
+      return new Response(JSON.stringify({ error: "Conexão indisponível (offline)" }), {
+        status: 503,
+        statusText: "Service Unavailable",
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   };
 }
 
