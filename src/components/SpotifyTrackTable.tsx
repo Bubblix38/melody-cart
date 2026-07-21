@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Clock, Play, Pause, Heart, ChevronDown, ChevronUp } from "lucide-react";
 import { Pack } from "@/lib/packs";
 import { Track } from "@/lib/tracks";
@@ -38,6 +38,106 @@ interface SpotifyTrackTableProps {
   tracks: Track[];
   pack: Pack;
 }
+
+type SortConfig = {
+  key: 'title' | 'album' | 'date';
+  direction: 'asc' | 'desc';
+} | null;
+
+interface TrackRowProps {
+  track: Track;
+  index: number;
+  pack: Pack;
+  isActive: boolean;
+  isPlaying: boolean;
+  isLiked: boolean;
+  gridStyle: React.CSSProperties;
+  onPlay: (track: Track) => void;
+  onToggleLike: (trackId: string, isLiked: boolean) => void;
+  togglePlayer: () => void;
+  isPendingLike: boolean;
+}
+
+const MemoizedTrackRow = React.memo(({ 
+  track, index, pack, isActive, isPlaying, isLiked, gridStyle, onPlay, onToggleLike, togglePlayer, isPendingLike 
+}: TrackRowProps) => {
+  return (
+    <div 
+      onDoubleClick={() => onPlay(track)}
+      className={cn(
+        "group grid gap-4 px-8 py-2 hover:bg-white/10 rounded-md items-center cursor-default transition-colors",
+        isActive && "bg-white/5"
+      )}
+      style={gridStyle}
+    >
+      {/* Number / Play button */}
+      <div className="relative flex items-center justify-center">
+        {isActive && isPlaying ? (
+          <button onClick={togglePlayer} className="text-spotify-green">
+            <Pause fill="currentColor" className="w-4 h-4" />
+          </button>
+        ) : isActive && !isPlaying ? (
+          <>
+            <span className="text-base text-spotify-green group-hover:hidden">{index + 1}</span>
+            <button onClick={() => onPlay(track)} className="hidden group-hover:block text-white">
+              <Play fill="currentColor" className="w-4 h-4" />
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-base group-hover:hidden">{index + 1}</span>
+            <button onClick={() => onPlay(track)} className="hidden group-hover:block text-white">
+              <Play fill="currentColor" className="w-4 h-4" />
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Title & Image */}
+      <div className="flex items-center gap-3 overflow-hidden pr-2">
+        <img 
+          src={pack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=50&h=50&fit=crop"} 
+          alt={track.title}
+          className="w-10 h-10 object-cover rounded bg-spotify-highlight shrink-0"
+        />
+        <div className="flex flex-col overflow-hidden">
+          <span onClick={() => onPlay(track)} className={cn("font-medium truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>{track.title}</span>
+          <span className="text-sm truncate group-hover:text-white transition-colors cursor-pointer">{pack.dj || "TopDJ Oficial"}</span>
+        </div>
+      </div>
+
+      {/* Album / Genre */}
+      <div className="hidden md:flex items-center overflow-hidden">
+        <span className="text-sm truncate hover:underline hover:text-white cursor-pointer">
+          {pack.nome || "Pack"}
+        </span>
+      </div>
+
+      {/* Date Added */}
+      <div className="hidden lg:flex items-center overflow-hidden">
+        <span className="text-sm truncate">
+          {new Date(track.created_at || Date.now()).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
+        </span>
+      </div>
+
+      {/* Duration & Actions */}
+      <div className="flex items-center justify-end gap-3 text-sm pr-2">
+        <button 
+          onClick={() => onToggleLike(track.id, isLiked)}
+          disabled={isPendingLike}
+          className={cn(
+            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50",
+            isLiked ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-white hover:text-white"
+          )}
+        >
+          <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+        </button>
+        <TrackDuration track={track} />
+      </div>
+    </div>
+  );
+});
+
 
 type SortConfig = {
   key: 'title' | 'album' | 'date';
@@ -237,87 +337,23 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
       <div className="flex flex-col">
         {sortedTracks.map((track, index) => {
           const isActive = current?.id === track.id;
+          const isLiked = likedTrackIds.has(track.id);
           
           return (
-          <div 
-            key={track.id}
-            onDoubleClick={() => handlePlay(track)}
-            className={cn(
-              "group grid gap-4 px-8 py-2 hover:bg-white/10 rounded-md items-center cursor-default transition-colors",
-              isActive && "bg-white/5"
-            )}
-            style={gridStyle}
-          >
-            {/* Number / Play button */}
-            <div className="relative flex items-center justify-center">
-              {isActive && isPlaying ? (
-                <button onClick={toggle} className="text-spotify-green">
-                  <Pause fill="currentColor" className="w-4 h-4" />
-                </button>
-              ) : isActive && !isPlaying ? (
-                <>
-                  <span className="text-base text-spotify-green group-hover:hidden">{index + 1}</span>
-                  <button onClick={() => handlePlay(track)} className="hidden group-hover:block text-white">
-                    <Play fill="currentColor" className="w-4 h-4" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="text-base group-hover:hidden">{index + 1}</span>
-                  <button onClick={() => handlePlay(track)} className="hidden group-hover:block text-white">
-                    <Play fill="currentColor" className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Title & Image */}
-            <div className="flex items-center gap-3 overflow-hidden pr-2">
-              <img 
-                src={pack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=50&h=50&fit=crop"} 
-                alt={track.title}
-                className="w-10 h-10 object-cover rounded bg-spotify-highlight shrink-0"
-              />
-              <div className="flex flex-col overflow-hidden">
-                <span onClick={() => handlePlay(track)} className={cn("font-medium truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>{track.title}</span>
-                <span className="text-sm truncate group-hover:text-white transition-colors cursor-pointer">{pack.dj || "TopDJ Oficial"}</span>
-              </div>
-            </div>
-
-            {/* Album / Genre */}
-            <div className="hidden md:flex items-center overflow-hidden">
-              <span className="text-sm truncate hover:underline hover:text-white cursor-pointer">
-                {pack.nome || "Pack"}
-              </span>
-            </div>
-
-            {/* Date Added */}
-            <div className="hidden lg:flex items-center overflow-hidden">
-              <span className="text-sm truncate">
-                {new Date(track.created_at || Date.now()).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
-              </span>
-            </div>
-
-            {/* Duration & Actions */}
-            <div className="flex items-center justify-end gap-3 text-sm pr-2">
-              {(() => {
-                const isLiked = likedTrackIds.has(track.id);
-                return (
-                  <button 
-                    onClick={() => handleToggleLike(track.id, isLiked)}
-                    disabled={toggleLikeMutation.isPending}
-                    className={cn(
-                      "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50",
-                      isLiked ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-white hover:text-white"
-                    )}
-                  >
-                    <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-                  </button>
-                );
-              })()}
-              <TrackDuration track={track} />
-            </div>
-          </div>
+            <MemoizedTrackRow
+              key={track.id}
+              track={track}
+              index={index}
+              pack={pack}
+              isActive={isActive}
+              isPlaying={isPlaying}
+              isLiked={isLiked}
+              gridStyle={gridStyle}
+              onPlay={handlePlay}
+              onToggleLike={handleToggleLike}
+              togglePlayer={toggle}
+              isPendingLike={toggleLikeMutation.isPending}
+            />
           );
         })}
       </div>
