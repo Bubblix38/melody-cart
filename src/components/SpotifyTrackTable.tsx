@@ -65,10 +65,9 @@ const MemoizedTrackRow = React.memo(({
     <div 
       onDoubleClick={() => onPlay(track)}
       className={cn(
-        "group grid gap-2 md:gap-4 px-4 md:px-8 py-2 hover:bg-white/10 rounded-md items-center cursor-default transition-colors",
+        "group grid gap-2 md:gap-4 px-4 md:px-8 py-2 hover:bg-white/10 rounded-md items-center cursor-default transition-colors track-grid-mobile",
         isActive && "bg-white/5"
       )}
-      style={gridStyle}
     >
       {/* Number / Play button */}
       <div className="relative flex items-center justify-center">
@@ -272,29 +271,17 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
     );
   }
 
-  const [isMd, setIsMd] = useState(true);
-  const [isLg, setIsLg] = useState(true);
-
-  useEffect(() => {
-    const checkSize = () => {
-      setIsMd(window.innerWidth >= 768);
-      setIsLg(window.innerWidth >= 1024);
-    };
-    checkSize();
-    window.addEventListener('resize', checkSize);
-    return () => window.removeEventListener('resize', checkSize);
-  }, []);
-
   const gridStyle = {
-    gridTemplateColumns: `32px minmax(150px, ${titleWidth}) ${isMd ? `minmax(100px, ${albumWidth}) ` : ''}${isLg ? `minmax(100px, ${dateWidth}) ` : ''}minmax(80px, 1fr)`
-  };
+    "--title-width": typeof titleWidth === 'number' ? `${titleWidth}px` : titleWidth,
+    "--album-width": typeof albumWidth === 'number' ? `${albumWidth}px` : albumWidth,
+    "--date-width": typeof dateWidth === 'number' ? `${dateWidth}px` : dateWidth,
+  } as React.CSSProperties;
 
   return (
-    <div className="w-full text-spotify-subtext pb-20 select-none">
+    <div className="w-full text-spotify-subtext pb-20 select-none" style={gridStyle}>
       {/* Table Header */}
       <div 
-        className="grid gap-2 md:gap-4 px-4 md:px-8 py-2 border-b border-white/10 text-xs font-medium uppercase tracking-wider mb-2 sticky top-0 bg-[#121212] z-30 pt-4 group/header"
-        style={gridStyle}
+        className="grid gap-2 md:gap-4 px-4 md:px-8 py-2 border-b border-white/10 text-xs font-medium uppercase tracking-wider mb-2 sticky top-0 bg-[#121212] z-30 pt-4 group/header track-grid-mobile"
       >
         <div className="text-center">#</div>
         

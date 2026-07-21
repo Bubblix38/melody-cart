@@ -199,3 +199,16 @@
 @utility bg-spotify-green { background-color: #1DB954; }
 @utility text-spotify-subtext { color: #b3b3b3; }
 
+.track-grid-mobile { 
+  grid-template-columns: 32px minmax(150px, var(--title-width)) minmax(80px, 1fr); 
+}
+@media (min-width: 768px) { 
+  .track-grid-mobile { 
+    grid-template-columns: 32px minmax(150px, var(--title-width)) minmax(100px, var(--album-width)) minmax(80px, 1fr); 
+  } 
+}
+@media (min-width: 1024px) { 
+  .track-grid-mobile { 
+    grid-template-columns: 32px minmax(150px, var(--title-width)) minmax(100px, var(--album-width)) minmax(100px, var(--date-width)) minmax(80px, 1fr); 
+  } 
+}
