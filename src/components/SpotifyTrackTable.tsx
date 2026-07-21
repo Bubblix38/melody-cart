@@ -58,9 +58,30 @@ interface TrackRowProps {
   isPendingLike: boolean;
 }
 
+import { cacheAudio, isAudioCached } from "@/lib/offline-storage";
+import { ArrowDownToLine, CheckCircle2 } from "lucide-react";
+
 const MemoizedTrackRow = React.memo(({ 
   track, index, pack, isActive, isPlaying, isLiked, gridStyle, onPlay, onToggleLike, togglePlayer, isPendingLike 
 }: TrackRowProps) => {
+  const [isCached, setIsCached] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    isAudioCached(track.audio_url).then(setIsCached);
+  }, [track.audio_url]);
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isCached || isDownloading) return;
+    setIsDownloading(true);
+    const success = await cacheAudio(track.audio_url);
+    if (success) {
+      setIsCached(true);
+    }
+    setIsDownloading(false);
+  };
+
   return (
     <div 
       onDoubleClick={() => onPlay(track)}
@@ -121,6 +142,17 @@ const MemoizedTrackRow = React.memo(({
 
       {/* Duration & Actions */}
       <div className="flex items-center justify-end gap-3 text-sm pr-1 md:pr-2 text-spotify-subtext">
+        <button 
+          onClick={handleDownload}
+          disabled={isDownloading || isCached}
+          className={cn(
+            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-100 hidden md:block",
+            isCached ? "text-spotify-green" : "opacity-0 group-hover:opacity-100 text-white/50 hover:text-white"
+          )}
+          title={isCached ? "Baixado" : "Baixar para tocar offline"}
+        >
+          {isCached ? <CheckCircle2 className="w-4 h-4" /> : <ArrowDownToLine className={cn("w-4 h-4", isDownloading && "animate-pulse text-spotify-green")} />}
+        </button>
         <button 
           onClick={(e) => { e.stopPropagation(); onToggleLike(track.id, isLiked); }}
           disabled={isPendingLike}

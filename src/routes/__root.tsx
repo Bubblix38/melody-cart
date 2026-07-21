@@ -115,8 +115,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/20f64a2e-f7ea-486b-8d17-b979d2627c13/id-preview-54a72a15--ecf14f43-c191-48cb-861f-8fcbe0315698.lovable.app-1783349783327.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/20f64a2e-f7ea-486b-8d17-b979d2627c13/id-preview-54a72a15--ecf14f43-c191-48cb-861f-8fcbe0315698.lovable.app-1783349783327.png" },
+      { name: "theme-color", content: "#121212" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" }
     ],
     links: [
+      {
+        rel: "manifest",
+        href: "/manifest.webmanifest",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=192&h=192&fit=crop",
+      },
       {
         rel: "stylesheet",
         href: appCss,

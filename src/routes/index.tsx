@@ -7,6 +7,8 @@ import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { SpotifyTrackTable } from "@/components/SpotifyTrackTable";
+import { cacheAudio } from "@/lib/offline-storage";
+import { toast } from "sonner";
 
 import { SpotifySidebar } from "@/components/SpotifySidebar";
 import { SpotifyHero } from "@/components/SpotifyHero";
@@ -61,6 +63,19 @@ function Index() {
     play(queue[0], queue);
   };
 
+  const handleDownloadPack = async () => {
+    if (tracks.length === 0) return;
+    toast.loading(`Baixando álbum para modo offline...`, { id: 'download-pack' });
+    let count = 0;
+    for (const track of tracks) {
+      const success = await cacheAudio(track.audio_url);
+      if (success) count++;
+    }
+    toast.success(`Álbum salvo offline! (${count} faixas)`, { id: 'download-pack' });
+    // Recarregar a página ou disparar evento para atualizar as setinhas verdes na tabela?
+    // O react vai atualizar as setinhas verdes quando o estado isCached re-renderizar
+  };
+
   useGSAP(() => {
     if (!containerRef.current) return;
     
@@ -112,6 +127,7 @@ function Index() {
               songsCount={tracks.length.toString()}
               duration="3h 30min"
               onPlay={handlePlayHero}
+              onDownload={handleDownloadPack}
             />
           )}
         </div>

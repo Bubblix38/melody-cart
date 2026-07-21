@@ -9,6 +9,7 @@ interface SpotifyHeroProps {
   songsCount: string;
   duration: string;
   onPlay?: () => void;
+  onDownload?: () => void;
 }
 
 export function SpotifyHero({
@@ -19,7 +20,8 @@ export function SpotifyHero({
   likes,
   songsCount,
   duration,
-  onPlay
+  onPlay,
+  onDownload
 }: SpotifyHeroProps) {
   return (
     <div className="relative pt-8 md:pt-20 pb-4 md:pb-6 px-4 md:px-8 md:rounded-t-lg bg-gradient-to-b from-indigo-900 via-indigo-900/60 to-[#121212]">
@@ -65,7 +67,7 @@ export function SpotifyHero({
           <button className="text-spotify-subtext hover:text-white transition-colors">
             <Heart className="w-7 h-7 md:w-8 md:h-8" />
           </button>
-          <button className="text-spotify-subtext hover:text-white transition-colors">
+          <button onClick={onDownload} className="text-spotify-subtext hover:text-white transition-colors cursor-pointer hover:scale-110">
             <ArrowDownToLine className="w-7 h-7 md:w-8 md:h-8" />
           </button>
           <button className="text-spotify-subtext hover:text-white transition-colors">

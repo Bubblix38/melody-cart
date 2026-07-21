@@ -96,7 +96,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const play = useCallback((track: PlayerTrack, newQueue?: PlayerTrack[]) => {
+  const play = useCallback(async (track: PlayerTrack, newQueue?: PlayerTrack[]) => {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -113,7 +113,29 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     }
 
     setCurrent(track);
-    audio.src = track.audioUrl;
+    
+    // Tenta carregar do cache offline
+    let finalSrc = track.audioUrl;
+    if ('caches' in window) {
+      try {
+        const cache = await caches.open('topdj-audio-cache-v1');
+        const response = await cache.match(track.audioUrl);
+        if (response) {
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          finalSrc = objectUrl;
+          
+          if (audio.dataset.objectUrl) {
+            URL.revokeObjectURL(audio.dataset.objectUrl);
+          }
+          audio.dataset.objectUrl = objectUrl;
+        }
+      } catch (err) {
+        console.error("Erro ao ler cache de áudio", err);
+      }
+    }
+
+    audio.src = finalSrc;
     audio.play().catch((err) => console.error("Erro ao tocar áudio:", err));
 
     // Registra a audição (1 por IP único por faixa, contabilizado no servidor).
