@@ -1,202 +1,85 @@
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Outlet,
-  Link,
-  createRootRouteWithContext,
-  useRouter,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
-import { useState, useEffect, type ReactNode } from "react";
-
-import "@fontsource/sora/500.css";
-import "@fontsource/sora/600.css";
-import "@fontsource/sora/700.css";
-import "@fontsource/sora/800.css";
-import "@fontsource-variable/plus-jakarta-sans/index.css";
-
-import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
-import { logSecurityEvent } from "@/lib/security-logger";
-import { CartProvider } from "@/lib/cart";
-import { BackgroundThemeProvider } from "@/lib/background-theme";
-import { AudioPlayerProvider } from "@/lib/audio-player";
-import { useDevToolsProtection } from "@/lib/devtools-protection";
 import { Header } from "@/components/Header";
-import { CartDrawer } from "@/components/CartDrawer";
-import { Toaster } from "@/components/ui/sonner";
 import { FixedPlayer } from "@/components/FixedPlayer";
-import { BackgroundScene } from "@/components/BackgroundScene";
-import TopDJMobile from "@/components/mobile/TopDJMobile";
+import { CartDrawer } from "@/components/CartDrawer";
+import { BackgroundThemeProvider, BackgroundScene } from "@/components/BackgroundTheme";
+import { CartProvider } from "@/lib/cart";
+import { AudioPlayerProvider } from "@/lib/audio-player";
+import { Toaster } from "sonner";
+import { useEffect, useState } from "react";
+import { TopDJMobile } from "@/components/mobile/TopDJMobile";
 
-function NotFoundComponent() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          A página que você procura não existe ou foi movida.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Voltar ao início
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
-  const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Esta página não carregou
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Algo deu errado. Tente atualizar ou voltar ao início.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Tentar novamente
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Voltar ao início
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createFileRoute("__root")({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "generator", content: "WordPress 6.4.1" },
-      { title: "TopDJ — Descubra e Compre os Melhores Álbuns" },
-      {
-        name: "description",
-        content:
-          "Descubra e compre os melhores packs de música: Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro e envio rápido na TopDJ.",
-      },
-      { name: "author", content: "TopDJ" },
-      { property: "og:title", content: "TopDJ — Descubra e Compre os Melhores Álbuns" },
-      {
-        property: "og:description",
-        content:
-          "Os melhores packs de música de todos os gêneros, com pagamento seguro e suporte 24h.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "TopDJ — Descubra e Compre os Melhores Álbuns" },
-      { name: "description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
-      { property: "og:description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos de Nacionais, Rock, Sertanejo e Eletrônica. Pagamento seguro." },
-      { property: "og:image", content: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=1200&h=630&fit=crop" },
-      { name: "twitter:image", content: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=1200&h=630&fit=crop" },
-      { name: "theme-color", content: "#121212" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" }
-    ],
-    links: [
-      {
-        rel: "manifest",
-        href: "/manifest.webmanifest",
-      },
-      {
-        rel: "apple-touch-icon",
-        href: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=192&h=192&fit=crop",
-      },
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { name: "viewport", content: "width=device-[#width], initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { title: "TopDJ — A Maior Loja de Packs de Música Eletrônica e Funk do Brasil" },
+      { name: "description", content: "Baixe os melhores packs de música para DJs. Produções de alta qualidade em WAV/MP3 320kbps. Lançamentos semanais." },
     ],
   }),
-  shellComponent: RootShell,
-  component: RootComponent,
-  notFoundComponent: NotFoundComponent,
-  errorComponent: ErrorComponent,
+  component: RootLayout,
 });
 
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="pt-BR" className="dark">
-      <head>
-        <HeadContent />
-      </head>
-      <body className="custom-scrollbar selection:bg-primary/30">
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
-
-function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-  const { startProtection } = useDevToolsProtection();
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-    return false;
-  });
+function RootLayout() {
+  const [startProtection, setStartProtection] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      setIsMobile(mobile);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+        (e.ctrlKey && e.key === "U")
+      ) {
+        e.preventDefault();
+      }
     };
 
-    window.addEventListener("resize", handleResize);
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
 
-    // Registrar Service Worker para modo offline PWA
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(
-          (registration) => {
-            console.log("Service Worker registrado com sucesso:", registration.scope);
-          },
-          (err) => {
-            console.error("Falha ao registrar Service Worker:", err);
-          }
-        );
-      });
-    }
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("contextmenu", handleContextMenu);
 
-    const stopProtection = startProtection();
-    if (localStorage.getItem("HONEYPOT_BANNED") === "true") {
-      logSecurityEvent("honeypot_triggered", { note: "Usuário bloqueado permanentemente retornou" });
-      document.body.innerHTML =
-        "<h1 style='color:red; text-align:center; margin-top:20%'>PERMANENT BAN</h1>";
-      window.location.href = "https://www.fbi.gov/investigate/cyber";
-    }
+    const timer = setTimeout(() => {
+      setStartProtection(true);
+    }, 1500);
+
     return () => {
-      window.removeEventListener("resize", handleResize);
-      stopProtection();
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("contextmenu", handleContextMenu);
+      clearTimeout(timer);
     };
+  }, []);
+
+  useEffect(() => {
+    if (!startProtection) return;
+
+    let devtoolsOpen = false;
+    const threshold = 160;
+
+    const checkDevTools = () => {
+      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+      if ((widthThreshold || heightThreshold) && !devtoolsOpen) {
+        devtoolsOpen = true;
+      }
+    };
+
+    const interval = setInterval(checkDevTools, 1000);
+    return () => clearInterval(interval);
   }, [startProtection]);
 
   return (
@@ -210,10 +93,10 @@ function RootComponent() {
             </div>
 
             {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
-            <div className="hidden md:flex min-h-screen flex-col pb-16">
+            <div className="hidden md:flex h-screen w-screen overflow-hidden bg-black flex-col select-none">
               <BackgroundScene />
               <Header />
-              <main className="flex-1 pt-14">
+              <main className="flex-1 w-full relative z-10 overflow-hidden">
                 <Outlet />
               </main>
               <CartDrawer />

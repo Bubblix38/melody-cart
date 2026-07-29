@@ -14,13 +14,21 @@ export type Track = {
 export type TrackInput = Omit<Track, "id" | "created_at">;
 
 export async function fetchTracks(packId?: string): Promise<Track[]> {
-  let query = supabase.from("tracks" as any).select("*").order("created_at", { ascending: false });
-  if (packId) {
-    query = query.eq("pack_id", packId);
+  try {
+    let query = supabase.from("tracks" as any).select("*").order("created_at", { ascending: false });
+    if (packId) {
+      query = query.eq("pack_id", packId);
+    }
+    const { data, error } = await query;
+    if (error) {
+      console.warn("Aviso ao buscar tracks:", error);
+      return [];
+    }
+    return (data as unknown as Track[]) || [];
+  } catch (err) {
+    console.warn("Exceção ao buscar tracks:", err);
+    return [];
   }
-  const { data, error } = await query;
-  if (error) throw error;
-  return data as unknown as Track[];
 }
 
 export async function createTrack(input: TrackInput): Promise<Track> {

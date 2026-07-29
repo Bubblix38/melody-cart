@@ -2,7 +2,7 @@ import { Library, Plus, Search, Heart, Pin, List, X } from "lucide-react";
 
 export function SpotifySidebar() {
   return (
-    <aside className="hidden md:flex flex-col w-[340px] shrink-0 text-[#b3b3b3] h-[calc(100vh-144px)] font-sans select-none">
+    <aside className="hidden md:flex flex-col w-[340px] shrink-0 text-[#b3b3b3] h-full font-sans select-none">
       {/* Library Section Panel */}
       <div className="bg-[#121212] rounded-lg flex-1 flex flex-col overflow-hidden">
         

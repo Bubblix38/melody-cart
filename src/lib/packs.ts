@@ -14,7 +14,7 @@ export interface Pack {
   updated_at: string;
 }
 
-const ALLOWED_IMAGE_DOMAINS = ["supabase.co", "amazonaws.com", "cloudinary.com", "imgur.com"];
+const ALLOWED_IMAGE_DOMAINS = ["supabase.co", "amazonaws.com", "cloudinary.com", "imgur.com", "unsplash.com"];
 
 function isValidImageUrl(url: string): boolean {
   try {
@@ -45,7 +45,6 @@ const PackSchema = z.object({
 
 export type PackInput = z.infer<typeof PackSchema>;
 
-// Tipos do banco ainda não regenerados; usamos cast controlado.
 const db = supabase as unknown as {
   from: (t: string) => any;
 };
@@ -61,12 +60,20 @@ function sanitizeInput(input: unknown): PackInput {
 }
 
 export async function fetchPacks(): Promise<Pack[]> {
-  const { data, error } = await db
-    .from("packs")
-    .select("*")
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as Pack[];
+  try {
+    const { data, error } = await db
+      .from("packs")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error) {
+      console.warn("Aviso ao buscar packs:", error);
+      return [];
+    }
+    return (data ?? []) as Pack[];
+  } catch (err) {
+    console.warn("Exceção ao buscar packs:", err);
+    return [];
+  }
 }
 
 export async function createPack(input: PackInput): Promise<Pack> {
@@ -98,10 +105,6 @@ const COVER_EXT_MAP: Record<string, string> = {
 };
 const MAX_COVER_SIZE = 5 * 1024 * 1024; // 5MB
 
-/**
- * Faz upload de uma imagem de capa para o bucket público de Storage.
- * Escrita restrita a admins via política de RLS do próprio bucket.
- */
 export async function uploadPackCover(file: File): Promise<string> {
   if (!ALLOWED_COVER_TYPES.includes(file.type)) {
     throw new Error("Formato não permitido. Use JPEG, PNG, WebP ou GIF.");

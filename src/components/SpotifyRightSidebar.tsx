@@ -8,7 +8,7 @@ export function SpotifyRightSidebar({ pack }: { pack?: Pack }) {
   const artistUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&w=600&h=400&fit=crop";
 
   return (
-    <aside className="hidden lg:flex flex-col w-[340px] shrink-0 bg-[#121212] rounded-lg h-[calc(100vh-144px)] overflow-y-auto custom-scrollbar p-4 text-[#b3b3b3] select-none">
+    <aside className="hidden lg:flex flex-col w-[340px] shrink-0 bg-[#121212] rounded-lg h-full overflow-y-auto custom-scrollbar p-4 text-[#b3b3b3] select-none">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-extrabold text-sm truncate pr-2">{title}</h3>

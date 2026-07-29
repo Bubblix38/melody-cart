@@ -87,15 +87,15 @@ function Index() {
   };
 
   return (
-    <div ref={containerRef} className="h-[calc(100vh-144px)] mt-16 w-full flex bg-black overflow-hidden p-2 gap-2 text-white font-sans selection:bg-[#1fdf64]/30 select-none">
+    <div ref={containerRef} className="h-full w-full pt-16 pb-20 flex bg-black overflow-hidden p-2 gap-2 text-white font-sans selection:bg-[#1fdf64]/30 select-none">
       
       {/* 1. Left Sidebar: Sua Biblioteca */}
-      <div className="hidden lg:flex shrink-0">
+      <div className="hidden lg:flex shrink-0 h-full">
         <SpotifySidebar />
       </div>
 
       {/* 2. Center Panel: Hero Banner (BRASILIAN ELECTRONIC 2026) & Spotify Track Table */}
-      <main className="flex-1 min-w-0 bg-[#121212] rounded-lg overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col relative z-10 w-full">
+      <main className="flex-1 min-w-0 bg-[#121212] rounded-lg overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col relative z-10 w-full h-full">
         <div>
           <SpotifyHero 
             title={spotlightPack.nome || "BRASILIAN ELECTRONIC 2026"}
@@ -116,7 +116,7 @@ function Index() {
       </main>
 
       {/* 3. Right Sidebar: Espresso (Remix) - AVLS & Sobre o Artista */}
-      <div className="hidden xl:flex shrink-0">
+      <div className="hidden xl:flex shrink-0 h-full">
         <SpotifyRightSidebar pack={spotlightPack} />
       </div>
 
