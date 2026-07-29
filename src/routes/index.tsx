@@ -4,8 +4,6 @@ import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query"
 import { fetchPacks } from "@/lib/packs";
 import { fetchTracks } from "@/lib/tracks";
 import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 import { SpotifyTrackTable } from "@/components/SpotifyTrackTable";
 import { cacheAudio } from "@/lib/offline-storage";
 import { toast } from "sonner";
@@ -23,12 +21,12 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "TopDJ — Descubra e Compre os Melhores Álbuns" },
-      { name: "description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos. Estilo Spotify." },
+      { name: "description", content: "Loja de packs de música TopDJ: encontre lançamentos e sucessos. Estilo Spotify Desktop." },
     ],
   }),
   loader: ({ context }) => (context as any).queryClient.ensureQueryData(packsQuery),
   component: Index,
-  errorComponent: ({ error }) => {
+  errorComponent: () => {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center text-white" role="alert">
         <p>Não foi possível carregar as músicas.</p>
@@ -56,9 +54,9 @@ function Index() {
     const queue: PlayerTrack[] = tracks.map((t) => ({
       id: t.id,
       title: t.title,
-      artist: spotlightPack?.dj || "TopDJ Oficial",
+      artist: spotlightPack?.dj || "saint hills",
       audioUrl: t.audio_url,
-      coverUrl: spotlightPack?.imagem_url || "",
+      coverUrl: spotlightPack?.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&h=600&fit=crop",
     }));
     play(queue[0], queue);
   };
@@ -72,45 +70,41 @@ function Index() {
       if (success) count++;
     }
     toast.success(`Álbum salvo offline! (${count} faixas)`, { id: 'download-pack' });
-    // Recarregar a página ou disparar evento para atualizar as setinhas verdes na tabela?
-    // O react vai atualizar as setinhas verdes quando o estado isCached re-renderizar
   };
 
-  // Removido GSAP de opacity 0 que travava o carregamento do conteúdo central em alguns navegadores
-
   return (
-    <div ref={containerRef} className="h-[calc(100vh-56px)] w-full flex bg-black md:bg-transparent overflow-x-hidden md:overflow-hidden md:p-2 md:gap-2 text-white font-sans selection:bg-spotify-green/30">
+    <div ref={containerRef} className="h-[calc(100vh-144px)] mt-16 w-full flex bg-black overflow-hidden p-2 gap-2 text-white font-sans selection:bg-[#1fdf64]/30 select-none">
       
-      {/* Barra Lateral Esquerda */}
-      <div className="hidden lg:flex gsap-sidebar-left shrink-0 will-change-transform">
+      {/* 1. Left Sidebar: Sua Biblioteca */}
+      <div className="hidden lg:flex shrink-0">
         <SpotifySidebar />
       </div>
 
-      {/* Área Central Principal */}
-      <main className="flex-1 min-w-0 bg-[#121212] md:rounded-lg overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col relative z-10 w-full">
-        <div className="gsap-hero will-change-transform">
+      {/* 2. Center Panel: Hero Banner & Track Table */}
+      <main className="flex-1 min-w-0 bg-[#121212] rounded-lg overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col relative z-10 w-full">
+        <div>
           {spotlightPack && (
             <SpotifyHero 
-              title={spotlightPack.nome || "Funk com Eletrônica: Premium Club Edits"}
-              description={spotlightPack.descricao || "Curadoria exclusiva para DJs profissionais. Tracks prontas para pista com BPM, Key e tags de gênero. Atualizado toda semana."}
-              imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=400&h=400&fit=crop"}
-              creator={spotlightPack.dj || "TopDJ Records"}
-              likes={Math.floor(Math.random() * 900 + 100).toString() + "k"}
-              songsCount={tracks.length.toString()}
-              duration="3h 30min"
+              title={spotlightPack.nome || "BRASILIAN ELECTRONIC 2026"}
+              description={spotlightPack.descricao || "baile house • brazilian bass • ginga beats • and everything in between"}
+              imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&h=600&fit=crop"}
+              creator={spotlightPack.dj || "saint hills"}
+              likes="6.832"
+              songsCount={tracks.length > 0 ? tracks.length.toString() : "174"}
+              duration="7h 30min"
               onPlay={handlePlayHero}
               onDownload={handleDownloadPack}
             />
           )}
         </div>
 
-        <div className="gsap-tracks flex-1 w-full relative z-20 bg-transparent md:bg-gradient-to-b from-black/20 to-spotify-base will-change-transform">
+        <div className="flex-1 w-full relative z-20 bg-[#121212]">
           <SpotifyTrackTable tracks={tracks} pack={spotlightPack} />
         </div>
       </main>
 
-      {/* Barra Lateral Direita */}
-      <div className="hidden xl:flex gsap-sidebar-right shrink-0 will-change-transform">
+      {/* 3. Right Sidebar: Espresso (Remix) & Sobre o Artista */}
+      <div className="hidden xl:flex shrink-0">
         <SpotifyRightSidebar pack={spotlightPack} />
       </div>
 

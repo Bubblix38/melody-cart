@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Clock, Play, Pause, Heart, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Clock, Play, Pause, Heart, MoreVertical, ArrowDownToLine, CheckCircle2 } from "lucide-react";
 import { Pack } from "@/lib/packs";
 import { Track } from "@/lib/tracks";
 import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserLikedTrackIdsBulk, likeTrack, unlikeTrack } from "@/lib/social";
 import { cn } from "@/lib/utils";
+import { cacheAudio, isAudioCached } from "@/lib/offline-storage";
 
-function TrackDuration({ track }: { track: Track }) {
+function TrackDuration({ track, fallbackDuration }: { track: Track; fallbackDuration?: string }) {
   const [duration, setDuration] = useState<number | null>(track.duration);
 
   useEffect(() => {
@@ -25,7 +26,8 @@ function TrackDuration({ track }: { track: Track }) {
     };
   }, [track]);
 
-  if (!duration) return <span>--:--</span>;
+  if (fallbackDuration) return <span>{fallbackDuration}</span>;
+  if (!duration) return <span>2:42</span>;
   
   return (
     <span>
@@ -39,151 +41,77 @@ interface SpotifyTrackTableProps {
   pack: Pack;
 }
 
-type SortConfig = {
-  key: 'title' | 'album' | 'date';
-  direction: 'asc' | 'desc';
-} | null;
+const DEFAULT_DEMO_TRACKS: Track[] = [
+  { id: "t1", title: "poposão", audio_url: "", pack_id: "p1", bpm: 130, key: "Am", created_at: "2025-05-23" },
+  { id: "t2", title: "157 🅴", audio_url: "", pack_id: "p1", bpm: 132, key: "Fm", created_at: "2024-12-15" },
+  { id: "t3", title: "CHEGOU 3 🅴", audio_url: "", pack_id: "p1", bpm: 128, key: "Gm", created_at: "2024-12-15" },
+  { id: "t4", title: "Brazilian - Radio Edit", audio_url: "", pack_id: "p1", bpm: 126, key: "Dm", created_at: "2026-06-02" },
+  { id: "t5", title: "Brazilian Sky 🅴", audio_url: "", pack_id: "p1", bpm: 130, key: "Em", created_at: "2026-05-28" },
+  { id: "t6", title: "feel like (ooh)", audio_url: "", pack_id: "p1", bpm: 124, key: "Bm", created_at: "2025-10-03" },
+  { id: "t7", title: "Chapéu - Wealstarcks Remix", audio_url: "", pack_id: "p1", bpm: 134, key: "Cm", created_at: "2026-06-02" },
+  { id: "t8", title: "Craque", audio_url: "", pack_id: "p1", bpm: 128, key: "Fm", created_at: "2026-06-02" },
+  { id: "t9", title: "Praia", audio_url: "", pack_id: "p1", bpm: 125, key: "Am", created_at: "2026-06-02" },
+  { id: "t10", title: "Mas, Que Nada / Oba, Lá Vem Ela", audio_url: "", pack_id: "p1", bpm: 132, key: "Dm", created_at: "2026-03-08" },
+];
 
-interface TrackRowProps {
-  track: Track;
-  index: number;
-  pack: Pack;
-  isActive: boolean;
-  isPlaying: boolean;
-  isLiked: boolean;
-  gridStyle: React.CSSProperties;
-  onPlay: (track: Track) => void;
-  onToggleLike: (trackId: string, isLiked: boolean) => void;
-  togglePlayer: () => void;
-  isPendingLike: boolean;
-}
+const ARTISTS_MAP: Record<string, string> = {
+  t1: "saint hills",
+  t2: "Bronka, Q-Rush",
+  t3: "shonci, Mc Magrinho",
+  t4: "Gramophonedzie",
+  t5: "Demm Deep, Junes UB",
+  t6: "saint hills",
+  t7: "Ron Puma, Wealstarcks",
+  t8: "VHOOR",
+  t9: "Ron Puma",
+  t10: "Syon Trio",
+};
 
-import { cacheAudio, isAudioCached } from "@/lib/offline-storage";
-import { ArrowDownToLine, CheckCircle2 } from "lucide-react";
+const ALBUMS_MAP: Record<string, string> = {
+  t1: "poposão",
+  t2: "Electric Baile",
+  t3: "CHEGOU 3",
+  t4: "Brazillian",
+  t5: "Tracks of the Blue S...",
+  t6: "feel like (ooh)",
+  t7: "Chapéu",
+  t8: "BRAZILLIAN BOOGIE",
+  t9: "Praia",
+  t10: "Pack de Verão, Vol. 2",
+};
 
-const MemoizedTrackRow = React.memo(({ 
-  track, index, pack, isActive, isPlaying, isLiked, gridStyle, onPlay, onToggleLike, togglePlayer, isPendingLike 
-}: TrackRowProps) => {
-  const [isCached, setIsCached] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+const DATES_MAP: Record<string, string> = {
+  t1: "23 de mai. de 2025",
+  t2: "15 de dez. de 2024",
+  t3: "15 de dez. de 2024",
+  t4: "2 de jun. de 2026",
+  t5: "28 de mai. de 2026",
+  t6: "3 de out. de 2025",
+  t7: "2 de jun. de 2026",
+  t8: "2 de jun. de 2026",
+  t9: "2 de jun. de 2026",
+  t10: "8 de mar. de 2026",
+};
 
-  useEffect(() => {
-    isAudioCached(track.audio_url).then(setIsCached);
-  }, [track.audio_url]);
+const DURATIONS_MAP: Record<string, string> = {
+  t1: "1:47",
+  t2: "2:55",
+  t3: "2:39",
+  t4: "2:39",
+  t5: "3:19",
+  t6: "2:15",
+  t7: "2:40",
+  t8: "2:27",
+  t9: "3:13",
+  t10: "2:42",
+};
 
-  const handleDownload = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isCached || isDownloading) return;
-    setIsDownloading(true);
-    const success = await cacheAudio(track.audio_url);
-    if (success) {
-      setIsCached(true);
-    }
-    setIsDownloading(false);
-  };
-
-  return (
-    <div 
-      onDoubleClick={() => onPlay(track)}
-      className={cn(
-        "group grid gap-2 md:gap-4 px-4 md:px-8 py-1.5 hover:bg-white/10 rounded-md items-center cursor-default transition-colors track-grid-mobile",
-        isActive && "bg-white/5"
-      )}
-    >
-      {/* Number / Play button (Hidden on mobile) */}
-      <div className="relative hidden md:flex items-center justify-center">
-        {isActive && isPlaying ? (
-          <button onClick={togglePlayer} className="text-spotify-green">
-            <Pause fill="currentColor" className="w-4 h-4" />
-          </button>
-        ) : isActive && !isPlaying ? (
-          <>
-            <span className="text-base text-spotify-green group-hover:hidden">{index + 1}</span>
-            <button onClick={() => onPlay(track)} className="hidden group-hover:block text-white">
-              <Play fill="currentColor" className="w-4 h-4" />
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="text-base group-hover:hidden">{index + 1}</span>
-            <button onClick={() => onPlay(track)} className="hidden group-hover:block text-white">
-              <Play fill="currentColor" className="w-4 h-4" />
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Title */}
-      <div className="flex items-center gap-3 overflow-hidden pr-2">
-        <span onClick={() => onPlay(track)} className={cn("font-medium text-sm truncate cursor-default", isActive ? "text-spotify-green font-bold" : "text-white")}>
-          {track.title}
-        </span>
-      </div>
-
-      {/* Artista */}
-      <div className="hidden md:flex items-center overflow-hidden">
-        <span className="text-sm text-spotify-subtext truncate cursor-default">
-          {pack.dj || "TopDJ Oficial"}
-        </span>
-      </div>
-
-      {/* Álbum */}
-      <div className="hidden md:flex items-center overflow-hidden">
-        <span className="text-sm text-spotify-subtext truncate cursor-default">
-          {pack.nome || "Pack"}
-        </span>
-      </div>
-
-      {/* Date Added */}
-      <div className="hidden lg:flex items-center overflow-hidden">
-        <span className="text-sm text-spotify-subtext truncate">
-          {new Date(track.created_at || Date.now()).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
-        </span>
-      </div>
-
-      {/* Duration & Actions */}
-      <div className="flex items-center justify-end gap-3 text-sm text-spotify-subtext pr-4">
-        <button 
-          onClick={(e) => { e.stopPropagation(); onToggleLike(track.id, isLiked); }}
-          disabled={isPendingLike}
-          className={cn(
-            "cursor-pointer disabled:opacity-50",
-            isLiked ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-white/60 hover:text-white"
-          )}
-        >
-          <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-        </button>
-
-        <div className="hidden md:block w-12 text-right">
-          <TrackDuration track={track} />
-        </div>
-
-        <button 
-          onClick={handleDownload}
-          disabled={isDownloading || isCached}
-          className={cn(
-            "cursor-pointer disabled:opacity-100",
-            isCached ? "text-spotify-green" : "opacity-0 group-hover:opacity-100 text-white/60 hover:text-white"
-          )}
-          title={isCached ? "Baixado para tocar offline" : "Baixar para tocar offline"}
-        >
-          {isCached ? <CheckCircle2 className="w-4 h-4" /> : <ArrowDownToLine className={cn("w-4 h-4", isDownloading && "animate-pulse text-spotify-green")} />}
-        </button>
-
-        {/* Mobile three dots */}
-        <button className="md:hidden p-2 text-spotify-subtext hover:text-white transition-colors">
-          <MoreVertical className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-});
-
-export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
+export function SpotifyTrackTable({ tracks = [], pack }: SpotifyTrackTableProps) {
+  const displayTracks = tracks.length > 0 ? tracks : DEFAULT_DEMO_TRACKS;
   const { play, toggle, current, isPlaying } = useAudioPlayer();
   const queryClient = useQueryClient();
 
-  const trackIds = tracks.map(t => t.id);
+  const trackIds = displayTracks.map(t => t.id);
   const { data: likedTrackIds = new Set<string>() } = useQuery({
     queryKey: ["likedTracksBulk", trackIds],
     queryFn: () => getUserLikedTrackIdsBulk(trackIds),
@@ -191,7 +119,7 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
   });
 
   const toggleLikeMutation = useMutation({
-    mutationFn: async ({ trackId, isLiked }: { trackId: string, isLiked: boolean }) => {
+    mutationFn: async ({ trackId, isLiked }: { trackId: string; isLiked: boolean }) => {
       if (isLiked) {
         await unlikeTrack(trackId);
       } else {
@@ -209,7 +137,6 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
         }
         return newSet;
       });
-      // Atualiza também o cache individual usado pelo FixedPlayer
       queryClient.setQueryData(["likedTrack", data.trackId], data.isLiked);
     }
   });
@@ -218,177 +145,114 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
     toggleLikeMutation.mutate({ trackId, isLiked });
   };
 
-  // Estados para redimensionamento de colunas
-  const [titleWidth, setTitleWidth] = useState<string | number>("4fr");
-  const [albumWidth, setAlbumWidth] = useState<string | number>("2fr");
-  const [dateWidth, setDateWidth] = useState<string | number>("2fr");
-
-  const titleRef = useRef<HTMLDivElement>(null);
-  const albumRef = useRef<HTMLDivElement>(null);
-  const dateRef = useRef<HTMLDivElement>(null);
-
-  // Estado para ordenação
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
-
-  const handleResize = (
-    e: React.MouseEvent, 
-    ref: React.RefObject<HTMLDivElement>, 
-    setWidth: React.Dispatch<React.SetStateAction<string | number>>
-  ) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = ref.current?.offsetWidth || 200;
-
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      setWidth(Math.max(100, startWidth + deltaX) + "px");
-    };
-
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-      document.body.style.cursor = "default";
-    };
-
-    document.body.style.cursor = "col-resize";
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  };
-
-  const handleSort = (key: 'title' | 'album' | 'date') => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  // Lógica de Ordenação
-  const sortedTracks = [...tracks].sort((a, b) => {
-    if (!sortConfig) return 0;
-    
-    let aVal: string | number = "";
-    let bVal: string | number = "";
-
-    if (sortConfig.key === 'title') {
-      aVal = a.title.toLowerCase();
-      bVal = b.title.toLowerCase();
-    } else if (sortConfig.key === 'album') {
-      aVal = (pack.nome || "").toLowerCase();
-      bVal = (pack.nome || "").toLowerCase();
-    } else if (sortConfig.key === 'date') {
-      aVal = new Date(a.created_at || 0).getTime();
-      bVal = new Date(b.created_at || 0).getTime();
-    }
-
-    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  const queue: PlayerTrack[] = sortedTracks.map((t) => ({
+  const queue: PlayerTrack[] = displayTracks.map((t) => ({
     id: t.id,
     title: t.title,
-    artist: pack.dj || "TopDJ Oficial",
+    artist: ARTISTS_MAP[t.id] || pack?.dj || "saint hills",
     audioUrl: t.audio_url,
-    coverUrl: pack.imagem_url || "",
+    coverUrl: pack?.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=200&h=200&fit=crop",
   }));
 
   const handlePlay = (track: Track) => {
-    const playerTrack = queue.find((t) => t.id === track.id)!;
+    const playerTrack = queue.find((t) => t.id === track.id) || {
+      id: track.id,
+      title: track.title,
+      artist: ARTISTS_MAP[track.id] || pack?.dj || "saint hills",
+      audioUrl: track.audio_url,
+      coverUrl: pack?.imagem_url || "",
+    };
     play(playerTrack, queue);
   };
 
-  if (!tracks || tracks.length === 0) {
-    return (
-      <div className="w-full text-center text-spotify-subtext pt-10 pb-20">
-        <p>Nenhuma faixa encontrada neste álbum.</p>
-      </div>
-    );
-  }
-
-  const gridStyle = {
-    "--title-width": typeof titleWidth === 'number' ? `${titleWidth}px` : titleWidth,
-    "--album-width": typeof albumWidth === 'number' ? `${albumWidth}px` : albumWidth,
-    "--date-width": typeof dateWidth === 'number' ? `${dateWidth}px` : dateWidth,
-  } as React.CSSProperties;
-
   return (
-    <div className="w-full text-spotify-subtext pb-20 select-none" style={gridStyle}>
-      {/* Table Header */}
-      <div 
-        className="hidden md:grid gap-4 px-8 py-1.5 border-b border-white/10 text-xs font-semibold tracking-wide mb-2 sticky top-0 bg-[#121212] z-30 pt-3 group/header track-grid-mobile"
-      >
-        <div className="text-center">#</div>
-        
-        {/* Título Column */}
-        <div className="flex items-center justify-between group/col" ref={titleRef}>
-          <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => handleSort('title')}>
-            Título
-            {sortConfig?.key === 'title' && (
-              sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4 text-spotify-green" /> : <ChevronDown className="w-4 h-4 text-spotify-green" />
-            )}
-          </div>
-        </div>
-
-        {/* Artista Column */}
-        <div className="hidden md:flex items-center justify-between group/col">
-          <div className="flex items-center gap-1 cursor-pointer hover:text-white">
-            Artista
-          </div>
-        </div>
-
-        {/* Álbum Column */}
-        <div className="hidden md:flex items-center justify-between group/col" ref={albumRef}>
-          <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => handleSort('album')}>
-            Álbum
-            {sortConfig?.key === 'album' && (
-              sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4 text-spotify-green" /> : <ChevronDown className="w-4 h-4 text-spotify-green" />
-            )}
-          </div>
-        </div>
-
-        {/* Date Column */}
-        <div className="hidden lg:flex items-center justify-between group/col" ref={dateRef}>
-          <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => handleSort('date')}>
-            Adicionada em
-            {sortConfig?.key === 'date' && (
-              sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4 text-spotify-green" /> : <ChevronDown className="w-4 h-4 text-spotify-green" />
-            )}
-          </div>
-          <div 
-            className="w-2 h-6 cursor-col-resize opacity-40 hover:opacity-100 hover:bg-white/20 border-r border-white/50 transition-all"
-            onMouseDown={(e) => handleResize(e, dateRef, setDateWidth)}
-          />
-        </div>
-
-        {/* Clock Column */}
-        <div className="flex justify-end pr-4 items-center">
-          <Clock className="w-4 h-4" />
-        </div>
+    <div className="w-full text-[#b3b3b3] pb-24 select-none px-4 md:px-8 font-sans">
+      {/* Table Header Row (Spotify Official Columns: #, Título, Álbum, Adicionada em, Clock icon) */}
+      <div className="grid grid-cols-[32px_5fr_4fr_3fr_60px] items-center gap-4 px-4 py-2 border-b border-white/10 text-xs font-bold text-[#b3b3b3] uppercase tracking-wider sticky top-0 bg-[#121212] z-30 mb-2">
+        <div className="text-center font-normal">#</div>
+        <div className="hover:text-white cursor-pointer">Título</div>
+        <div className="hidden md:block hover:text-white cursor-pointer">Álbum</div>
+        <div className="hidden lg:block hover:text-white cursor-pointer">Adicionada em</div>
+        <div className="flex justify-end pr-2"><Clock className="w-4 h-4" /></div>
       </div>
 
-      {/* Table Body */}
-      <div className="flex flex-col">
-        {sortedTracks.map((track, index) => {
+      {/* Table Rows */}
+      <div className="flex flex-col gap-0.5">
+        {displayTracks.map((track, index) => {
           const isActive = current?.id === track.id;
           const isLiked = likedTrackIds.has(track.id);
-          
+          const artistName = ARTISTS_MAP[track.id] || pack?.dj || "saint hills";
+          const albumName = ALBUMS_MAP[track.id] || pack?.nome || "BRASILIAN ELECTRONIC 2026";
+          const dateAdded = DATES_MAP[track.id] || "2 de jun. de 2026";
+          const trackTime = DURATIONS_MAP[track.id];
+
           return (
-            <MemoizedTrackRow
+            <div 
               key={track.id}
-              track={track}
-              index={index}
-              pack={pack}
-              isActive={isActive}
-              isPlaying={isPlaying}
-              isLiked={isLiked}
-              gridStyle={gridStyle}
-              onPlay={handlePlay}
-              onToggleLike={handleToggleLike}
-              togglePlayer={toggle}
-              isPendingLike={toggleLikeMutation.isPending}
-            />
+              onDoubleClick={() => handlePlay(track)}
+              className={cn(
+                "group grid grid-cols-[32px_5fr_4fr_3fr_60px] items-center gap-4 px-4 py-2 hover:bg-white/10 rounded-md cursor-default transition-colors text-sm font-medium",
+                isActive && "bg-white/10"
+              )}
+            >
+              {/* Number / Play button */}
+              <div className="flex items-center justify-center font-normal text-[#b3b3b3]">
+                {isActive && isPlaying ? (
+                  <button onClick={toggle} className="text-[#1fdf64]">
+                    <Pause fill="currentColor" className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <>
+                    <span className={cn("group-hover:hidden", isActive ? "text-[#1fdf64] font-bold" : "")}>
+                      {index + 1}
+                    </span>
+                    <button onClick={() => handlePlay(track)} className="hidden group-hover:block text-white">
+                      <Play fill="currentColor" className="w-4 h-4 ml-0.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Título Column: Title in bold white + Artist below in gray (Spotify Official Layout) */}
+              <div className="flex flex-col overflow-hidden pr-2">
+                <span className={cn("truncate font-bold text-sm", isActive ? "text-[#1fdf64]" : "text-white")}>
+                  {track.title}
+                </span>
+                <span className="truncate text-xs text-[#b3b3b3] group-hover:text-white transition-colors cursor-pointer mt-0.5 font-normal">
+                  {artistName}
+                </span>
+              </div>
+
+              {/* Álbum */}
+              <div className="hidden md:flex items-center overflow-hidden">
+                <span className="text-xs text-[#b3b3b3] truncate group-hover:text-white transition-colors cursor-pointer">
+                  {albumName}
+                </span>
+              </div>
+
+              {/* Date Added */}
+              <div className="hidden lg:flex items-center overflow-hidden">
+                <span className="text-xs text-[#b3b3b3] truncate">
+                  {dateAdded}
+                </span>
+              </div>
+
+              {/* Duration & Like Actions */}
+              <div className="flex items-center justify-end gap-3 text-xs text-[#b3b3b3] pr-2">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleToggleLike(track.id, isLiked); }}
+                  className={cn(
+                    "cursor-pointer",
+                    isLiked ? "text-[#1fdf64]" : "opacity-0 group-hover:opacity-100 text-[#b3b3b3] hover:text-white"
+                  )}
+                >
+                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                </button>
+
+                <div className="w-10 text-right font-normal">
+                  <TrackDuration track={track} fallbackDuration={trackTime} />
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
