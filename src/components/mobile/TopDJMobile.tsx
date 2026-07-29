@@ -97,13 +97,6 @@ const DEFAULT_TRACKS: PlayerTrack[] = [
   },
 ];
 
-const navItems: { screen: Screen; icon: typeof Search; label: string }[] = [
-  { screen: "catalog", icon: Search, label: "Catálogo" },
-  { screen: "library", icon: Library, label: "Biblioteca" },
-  { screen: "favorites", icon: Bookmark, label: "Favoritos" },
-  { screen: "profile", icon: User, label: "Perfil" },
-];
-
 function TrackRowItem({
   track,
   onSelectTrack,
@@ -152,10 +145,14 @@ function TrackRowItem({
 
 function CatalogScreen({
   tracks,
+  user,
   onSelectTrack,
+  onOpenProfile,
 }: {
   tracks: PlayerTrack[];
+  user: any;
   onSelectTrack: (t: PlayerTrack) => void;
+  onOpenProfile: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const filtered = tracks.filter((t) =>
@@ -163,11 +160,30 @@ function CatalogScreen({
     (t.artist && t.artist.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+
   return (
     <div className="screen search-screen">
-      <div className="screen-header">
-        <h1 className="brand-title">TOPDJ</h1>
-        <span className="brand-sub">Catálogo de Músicas</span>
+      <div className="screen-header flex items-center justify-between">
+        <div>
+          <h1 className="brand-title">TOPDJ</h1>
+          <span className="brand-sub">Catálogo de Músicas</span>
+        </div>
+        {userAvatar ? (
+          <img
+            src={userAvatar}
+            alt="Perfil"
+            onClick={onOpenProfile}
+            className="w-10 h-10 rounded-full object-cover border-2 border-purple-500 shadow-md cursor-pointer hover:scale-105 transition-transform"
+          />
+        ) : (
+          <button
+            onClick={onOpenProfile}
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-purple-400 border border-white/10 cursor-pointer"
+          >
+            <User size={20} />
+          </button>
+        )}
       </div>
 
       <div className="search-bar">
@@ -260,25 +276,8 @@ function FavoritesScreen({
   );
 }
 
-function ProfileScreen() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setLoading(false);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+function ProfileScreen({ user, setUser }: { user: any; setUser: (u: any) => void }) {
+  const [loading, setLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -508,6 +507,7 @@ function PlayerScreen({
 
 export default function TopDJMobile() {
   const [screen, setScreen] = useState<Screen>("catalog");
+  const [user, setUser] = useState<any>(null);
   const [showPlayer, setShowPlayer] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [favorited, setFavorited] = useState<Set<string>>(new Set());
@@ -515,10 +515,13 @@ export default function TopDJMobile() {
   const player = useAudioPlayer();
 
   useEffect(() => {
-    // Detecta evento oficial do Supabase ao concluir login com sucesso
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
       if (event === "SIGNED_IN" || session) {
-        // Alterna suavemente para a aba Perfil ao confirmar login
         if (typeof window !== "undefined" && (window.location.hash.includes("access_token") || window.location.search.includes("code="))) {
           setScreen("profile");
         }
@@ -596,7 +599,15 @@ export default function TopDJMobile() {
     });
   };
 
+  const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
   const currentTrack = player.current || allTracks[0];
+
+  const navItems: { screen: Screen; icon: typeof Search; label: string }[] = [
+    { screen: "catalog", icon: Search, label: "Catálogo" },
+    { screen: "library", icon: Library, label: "Biblioteca" },
+    { screen: "favorites", icon: Bookmark, label: "Favoritos" },
+    { screen: "profile", icon: User, label: "Perfil" },
+  ];
 
   if (showPlayer) {
     return (
@@ -617,10 +628,17 @@ export default function TopDJMobile() {
   return (
     <div className="topdj-mobile-root">
       <div className="main-content">
-        {screen === "catalog" && <CatalogScreen tracks={allTracks} onSelectTrack={selectAndPlay} />}
+        {screen === "catalog" && (
+          <CatalogScreen
+            tracks={allTracks}
+            user={user}
+            onSelectTrack={selectAndPlay}
+            onOpenProfile={() => setScreen("profile")}
+          />
+        )}
         {screen === "library" && <LibraryScreen liked={liked} tracks={allTracks} onSelectTrack={selectAndPlay} />}
         {screen === "favorites" && <FavoritesScreen favorited={favorited} tracks={allTracks} onSelectTrack={selectAndPlay} />}
-        {screen === "profile" && <ProfileScreen />}
+        {screen === "profile" && <ProfileScreen user={user} setUser={setUser} />}
       </div>
 
       {/* Mini Player */}
@@ -652,16 +670,29 @@ export default function TopDJMobile() {
 
       {/* Bottom Nav */}
       <nav className="bottom-nav">
-        {navItems.map(({ screen: s, icon: Icon, label }) => (
-          <button
-            key={s}
-            className={`nav-btn ${screen === s ? "active" : ""}`}
-            onClick={() => setScreen(s)}
-          >
-            <Icon size={22} />
-            <span className="nav-label">{label}</span>
-          </button>
-        ))}
+        {navItems.map(({ screen: s, icon: Icon, label }) => {
+          const isProfileTab = s === "profile";
+          return (
+            <button
+              key={s}
+              className={`nav-btn ${screen === s ? "active" : ""}`}
+              onClick={() => setScreen(s)}
+            >
+              {isProfileTab && userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt="Perfil"
+                  className={`w-6 h-6 rounded-full object-cover border ${
+                    screen === "profile" ? "border-purple-400 ring-2 ring-purple-500/50" : "border-gray-500"
+                  }`}
+                />
+              ) : (
+                <Icon size={22} />
+              )}
+              <span className="nav-label">{label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
