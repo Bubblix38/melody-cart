@@ -142,31 +142,34 @@ const MemoizedTrackRow = React.memo(({
       </div>
 
       {/* Duration & Actions */}
-      <div className="flex items-center justify-end gap-3 text-sm pr-1 md:pr-2 text-spotify-subtext">
-        <button 
-          onClick={handleDownload}
-          disabled={isDownloading || isCached}
-          className={cn(
-            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-100",
-            isCached ? "text-spotify-green animate-bounce-once" : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-white/70 md:text-white/50 hover:text-white"
-          )}
-          title={isCached ? "Baixado" : "Baixar para tocar offline"}
-        >
-          {isCached ? <CheckCircle2 className="w-4 h-4" /> : <ArrowDownToLine className={cn("w-4 h-4", isDownloading && "animate-pulse text-spotify-green")} />}
-        </button>
+      <div className="flex items-center justify-end gap-3 text-sm text-spotify-subtext pr-4">
         <button 
           onClick={(e) => { e.stopPropagation(); onToggleLike(track.id, isLiked); }}
           disabled={isPendingLike}
           className={cn(
             "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50",
-            isLiked ? "opacity-100 text-primary animate-pulse-once" : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-white/70 md:text-white hover:text-white"
+            isLiked ? "opacity-100 text-primary animate-pulse-once" : "opacity-0 group-hover:opacity-100 text-white/50 hover:text-white"
           )}
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
         </button>
-        <div className="hidden md:block">
+
+        <div className="hidden md:block w-12 text-right">
           <TrackDuration track={track} />
         </div>
+
+        <button 
+          onClick={handleDownload}
+          disabled={isDownloading || isCached}
+          className={cn(
+            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-100",
+            isCached ? "text-spotify-green" : "opacity-0 group-hover:opacity-100 text-white/50 hover:text-white"
+          )}
+          title={isCached ? "Baixado para tocar offline" : "Baixar para tocar offline"}
+        >
+          {isCached ? <CheckCircle2 className="w-4 h-4" /> : <ArrowDownToLine className={cn("w-4 h-4", isDownloading && "animate-pulse text-spotify-green")} />}
+        </button>
+
         {/* Mobile three dots */}
         <button className="md:hidden p-2 text-spotify-subtext hover:text-white transition-colors">
           <MoreVertical className="w-5 h-5" />
@@ -360,7 +363,7 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
         </div>
 
         {/* Clock Column */}
-        <div className="flex justify-end pr-8 items-center">
+        <div className="flex justify-end pr-4 items-center">
           <Clock className="w-4 h-4" />
         </div>
       </div>
