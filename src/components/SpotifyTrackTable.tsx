@@ -113,29 +113,30 @@ const MemoizedTrackRow = React.memo(({
         )}
       </div>
 
-      {/* Title & Image */}
+      {/* Title */}
       <div className="flex items-center gap-3 overflow-hidden pr-2">
-        <img 
-          src={pack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=50&h=50&fit=crop"} 
-          alt={track.title}
-          className="w-12 h-12 md:w-10 md:h-10 object-cover rounded bg-spotify-highlight shrink-0"
-        />
-        <div className="flex flex-col overflow-hidden">
-          <span onClick={() => onPlay(track)} className={cn("font-medium truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>{track.title}</span>
-          <span className="text-sm truncate group-hover:text-white transition-colors cursor-pointer">{pack.dj || "TopDJ Oficial"}</span>
-        </div>
+        <span onClick={() => onPlay(track)} className={cn("font-bold text-sm truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>
+          {track.title}
+        </span>
       </div>
 
-      {/* Album / Genre */}
+      {/* Artista */}
       <div className="hidden md:flex items-center overflow-hidden">
-        <span className="text-sm truncate hover:underline hover:text-white cursor-pointer">
+        <span className="text-sm text-spotify-subtext truncate hover:underline hover:text-white cursor-pointer">
+          {pack.dj || "TopDJ Oficial"}
+        </span>
+      </div>
+
+      {/* Álbum */}
+      <div className="hidden md:flex items-center overflow-hidden">
+        <span className="text-sm text-spotify-subtext truncate hover:underline hover:text-white cursor-pointer">
           {pack.nome || "Pack"}
         </span>
       </div>
 
       {/* Date Added */}
       <div className="hidden lg:flex items-center overflow-hidden">
-        <span className="text-sm truncate">
+        <span className="text-sm text-spotify-subtext truncate">
           {new Date(track.created_at || Date.now()).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
         </span>
       </div>
@@ -325,24 +326,23 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
               sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4 text-spotify-green" /> : <ChevronDown className="w-4 h-4 text-spotify-green" />
             )}
           </div>
-          <div 
-            className="w-2 h-6 cursor-col-resize opacity-40 hover:opacity-100 hover:bg-white/20 border-r border-white/50 transition-all"
-            onMouseDown={(e) => handleResize(e, titleRef, setTitleWidth)}
-          />
+        </div>
+
+        {/* Artista Column */}
+        <div className="hidden md:flex items-center justify-between group/col">
+          <div className="flex items-center gap-1 cursor-pointer hover:text-white">
+            Artista
+          </div>
         </div>
 
         {/* Álbum Column */}
         <div className="hidden md:flex items-center justify-between group/col" ref={albumRef}>
           <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => handleSort('album')}>
-            Álbum / Gênero
+            Álbum
             {sortConfig?.key === 'album' && (
               sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4 text-spotify-green" /> : <ChevronDown className="w-4 h-4 text-spotify-green" />
             )}
           </div>
-          <div 
-            className="w-2 h-6 cursor-col-resize opacity-40 hover:opacity-100 hover:bg-white/20 border-r border-white/50 transition-all"
-            onMouseDown={(e) => handleResize(e, albumRef, setAlbumWidth)}
-          />
         </div>
 
         {/* Date Column */}

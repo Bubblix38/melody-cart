@@ -397,12 +397,12 @@
 }
 @media (min-width: 768px) { 
   .track-grid-mobile { 
-    grid-template-columns: 32px minmax(150px, var(--title-width)) minmax(100px, var(--album-width)) minmax(80px, 1fr); 
+    grid-template-columns: 32px 3fr 2fr 2fr 1.5fr 60px; 
   } 
 }
 @media (min-width: 1024px) { 
   .track-grid-mobile { 
-    grid-template-columns: 32px minmax(150px, var(--title-width)) minmax(100px, var(--album-width)) minmax(100px, var(--date-width)) minmax(80px, 1fr); 
+    grid-template-columns: 32px 3fr 2fr 2fr 1.5fr 60px; 
   } 
 }
 

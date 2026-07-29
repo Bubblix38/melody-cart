@@ -1,4 +1,4 @@
-import { Play, Heart, MoreHorizontal, ArrowDownToLine } from "lucide-react";
+import { Play, Heart, MoreHorizontal, ArrowDownToLine, Shuffle, CheckCircle2, ListFilter } from "lucide-react";
 
 interface SpotifyHeroProps {
   title: string;
@@ -24,54 +24,87 @@ export function SpotifyHero({
   onDownload
 }: SpotifyHeroProps) {
   return (
-    <div className="relative pt-6 md:pt-10 pb-4 px-4 md:px-8 md:rounded-t-lg bg-gradient-to-b from-indigo-950/80 via-indigo-900/40 to-[#121212]">
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-end relative z-10 pt-4 md:pt-0">
+    <div className="relative pt-6 md:pt-10 pb-6 px-4 md:px-8 md:rounded-t-lg bg-gradient-to-b from-[#1b434d] via-[#102d34] to-[#121212]">
+      {/* Hero Content */}
+      <div className="flex flex-col md:flex-row gap-6 items-center md:items-end relative z-10 pt-2 md:pt-0">
         <img 
           src={imageUrl} 
           alt={title}
-          className="w-44 h-44 md:w-40 md:h-40 rounded-lg shadow-2xl object-cover"
+          className="w-48 h-48 md:w-56 md:h-56 rounded-md shadow-2xl object-cover shrink-0"
         />
         
-        <div className="flex flex-col gap-1 md:gap-2 w-full text-white mt-4 md:mt-0 text-left">
-          <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight line-clamp-2">
+        <div className="flex flex-col gap-2 w-full text-white text-left">
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">
+            Playlist pública
+          </span>
+
+          <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-none my-1">
             {title}
           </h1>
-          <p className="text-spotify-subtext text-xs md:text-sm mt-1 line-clamp-2 max-w-2xl">
+
+          <p className="text-white/70 text-xs md:text-sm font-normal line-clamp-2 max-w-3xl">
             {description}
           </p>
           
-          <div className="flex items-center flex-wrap gap-2 text-xs md:text-sm mt-1 font-medium">
+          <div className="flex items-center flex-wrap gap-1.5 text-xs md:text-sm font-medium text-white/80 mt-1">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-white">
-                PRO
-              </span>
-              <span className="font-bold hover:underline cursor-pointer">{creator}</span>
+              <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-[10px] font-black text-emerald-400">
+                DJ
+              </div>
+              <span className="font-bold text-white hover:underline cursor-pointer">{creator}</span>
             </div>
-            <span className="text-spotify-subtext hidden md:inline">• {likes} downloads</span>
-            <span className="text-spotify-subtext hidden md:inline">• {songsCount} tracks</span>
-            <span className="text-spotify-subtext hidden md:inline">• {duration}</span>
-            
-            <span className="text-spotify-subtext md:hidden w-full mt-1">Baixado por {likes}</span>
+            <span>•</span>
+            <span>{likes} salvamentos</span>
+            <span>•</span>
+            <span>{songsCount} músicas, cerca de {duration}</span>
           </div>
         </div>
       </div>
 
-      {/* Action Bar */}
-      <div className="flex items-center gap-6 mt-4 relative z-10 w-full">
-        <button onClick={onPlay} className="w-12 h-12 rounded-full bg-spotify-green hover:bg-[#1ed760] text-black flex items-center justify-center transition-all hover:scale-105 shadow-xl order-last md:order-first ml-auto md:ml-0">
-          <Play fill="currentColor" className="w-6 h-6 ml-0.5" />
-        </button>
-        
-        <div className="flex items-center gap-6 order-first md:order-last">
-          <button className="text-spotify-subtext hover:text-white transition-colors">
-            <Heart className="w-6 h-6" />
+      {/* Spotify Action Bar */}
+      <div className="flex items-center justify-between mt-8 relative z-10 w-full pt-2">
+        <div className="flex items-center gap-6">
+          {/* Big Green Play Button */}
+          <button 
+            onClick={onPlay} 
+            className="w-14 h-14 rounded-full bg-[#1ed760] hover:bg-[#1fdf64] hover:scale-105 text-black flex items-center justify-center transition-all shadow-xl cursor-pointer"
+            title="Tocar playlist"
+          >
+            <Play fill="currentColor" className="w-7 h-7 ml-1" />
           </button>
-          <button onClick={onDownload} className="text-spotify-subtext hover:text-white transition-colors cursor-pointer hover:scale-110">
-            <ArrowDownToLine className="w-6 h-6" />
+          
+          {/* Mini Album Art Badge */}
+          <img 
+            src={imageUrl} 
+            alt="" 
+            className="w-9 h-9 rounded object-cover border border-white/10 hidden sm:block" 
+          />
+
+          {/* Shuffle */}
+          <button className="text-white/60 hover:text-white transition-colors cursor-pointer" title="Ordem aleatória">
+            <Shuffle className="w-6 h-6" />
           </button>
-          <button className="text-spotify-subtext hover:text-white transition-colors">
+
+          {/* Saved Checkmark */}
+          <button className="w-8 h-8 rounded-full bg-[#1ed760] text-black flex items-center justify-center cursor-pointer hover:scale-105 transition-transform" title="Salvo na sua biblioteca">
+            <CheckCircle2 className="w-5 h-5 fill-black text-[#1ed760]" />
+          </button>
+
+          {/* Download */}
+          <button onClick={onDownload} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer" title="Baixar offline">
+            <ArrowDownToLine className="w-4 h-4" />
+          </button>
+
+          {/* Three Dots */}
+          <button className="text-white/60 hover:text-white transition-colors cursor-pointer" title="Mais opções">
             <MoreHorizontal className="w-6 h-6" />
           </button>
+        </div>
+
+        {/* Right Toggle View */}
+        <div className="hidden md:flex items-center gap-2 text-white/60 hover:text-white text-xs font-semibold cursor-pointer">
+          <span>Compacto</span>
+          <ListFilter className="w-4 h-4" />
         </div>
       </div>
     </div>
