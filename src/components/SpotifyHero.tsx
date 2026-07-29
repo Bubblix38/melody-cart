@@ -26,16 +26,17 @@ export function SpotifyHero({
   const displayTitle = "BRASILIAN ELECTRONIC 2026";
   const displayDesc = "baile house • brazilian bass • ginga beats • and everything in between";
   const displayCreator = "saint hills";
-  const displayImg = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&h=600&fit=crop";
+  const displayImg = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=800&h=800&fit=crop";
 
   return (
-    <div className="relative pt-6 pb-6 px-6 md:px-8 md:rounded-t-lg bg-gradient-to-b from-[#1e4755] via-[#102d34] to-[#121212] select-none">
+    <div className="relative pt-6 pb-6 px-6 md:px-8 md:rounded-t-lg bg-gradient-to-b from-[#1b4855] via-[#12313a] to-[#121212] select-none">
       {/* Hero Content Header */}
       <div className="flex flex-col md:flex-row gap-6 items-center md:items-end relative z-10 pt-2">
+        {/* Large Spotify Cover Image (232px x 232px) */}
         <img 
           src={displayImg} 
           alt={displayTitle}
-          className="w-44 h-44 md:w-52 md:h-52 rounded-md shadow-2xl object-cover shrink-0"
+          className="w-56 h-56 md:w-60 md:h-60 lg:w-[232px] lg:h-[232px] min-w-[232px] rounded-md shadow-[0_8px_40px_rgba(0,0,0,0.6)] object-cover shrink-0"
         />
         
         <div className="flex flex-col gap-2 w-full text-white text-left min-w-0">
@@ -47,7 +48,7 @@ export function SpotifyHero({
             {displayTitle}
           </h1>
 
-          <p className="text-white/80 text-xs md:text-sm font-medium line-clamp-2 max-w-3xl">
+          <p className="text-white/80 text-xs md:text-sm font-medium line-clamp-2 max-w-3xl mt-1">
             {displayDesc}
           </p>
           
