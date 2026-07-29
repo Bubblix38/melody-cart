@@ -282,7 +282,7 @@ function ProfileScreen() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/perfil`;
+    const redirectUrl = window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -507,18 +507,8 @@ function PlayerScreen({
 }
 
 export default function TopDJMobile() {
-  const [screen, setScreen] = useState<Screen>(() => {
-    if (typeof window !== "undefined") {
-      if (
-        window.location.hash.includes("access_token") ||
-        window.location.search.includes("code=") ||
-        window.location.pathname.includes("perfil")
-      ) {
-        return "profile";
-      }
-    }
-    return "catalog";
-  });
+  // Sempre inicia no Catálogo por padrão
+  const [screen, setScreen] = useState<Screen>("catalog");
 
   const [showPlayer, setShowPlayer] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -527,15 +517,14 @@ export default function TopDJMobile() {
   const player = useAudioPlayer();
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
+    // Se o usuário estiver voltando ativamente de um fluxo de login do Google (com tokens na URL)
+    if (typeof window !== "undefined") {
+      if (window.location.hash.includes("access_token") || window.location.search.includes("code=")) {
         setScreen("profile");
+        // Limpa os tokens da barra de endereço para não travar em /perfil nas próximas visitas
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    }
   }, []);
 
   const { data: packs = [] } = useQuery({
