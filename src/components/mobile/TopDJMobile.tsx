@@ -73,29 +73,7 @@ interface Confetti {
   emoji: string;
 }
 
-const DEFAULT_TRACKS: PlayerTrack[] = [
-  {
-    id: "demo-1",
-    title: "Neon Pulse",
-    artist: "Aetherwave",
-    audioUrl: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=electronic-future-beats-117997.mp3",
-    coverUrl: "https://agent8-games.verse8.io/0xe5a00eaa7fc8a8b6c9483d094574fef92bf34751/mcp-uploads/static-assets/background-1785292497513.png",
-  },
-  {
-    id: "demo-2",
-    title: "Deep Current",
-    artist: "Blue Shift",
-    audioUrl: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=deep-house-synthwave-10874.mp3",
-    coverUrl: "https://agent8-games.verse8.io/0xe5a00eaa7fc8a8b6c9483d094574fef92bf34751/mcp-uploads/static-assets/background-1785292504126.png",
-  },
-  {
-    id: "demo-3",
-    title: "Amber Sky",
-    artist: "Solstice",
-    audioUrl: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=techno-festival-loop-1412.mp3",
-    coverUrl: "https://agent8-games.verse8.io/0xe5a00eaa7fc8a8b6c9483d094574fef92bf34751/mcp-uploads/static-assets/background-1785292505849.png",
-  },
-];
+const DEFAULT_COVER = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&q=80";
 
 function TrackRowItem({
   track,
@@ -122,7 +100,7 @@ function TrackRowItem({
 
   return (
     <div className="track-row" onClick={() => onSelectTrack(track)}>
-      <img src={track.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={track.title} className="track-thumb" style={{ width: 48, height: 48 }} />
+      <img src={track.coverUrl || DEFAULT_COVER} alt={track.title} className="track-thumb" style={{ width: 48, height: 48 }} />
       <div className="track-meta">
         <span className="track-name">{track.title}</span>
         <span className="track-sub">{track.artist}</span>
@@ -145,11 +123,13 @@ function TrackRowItem({
 
 function CatalogScreen({
   tracks,
+  isLoading,
   user,
   onSelectTrack,
   onOpenProfile,
 }: {
   tracks: PlayerTrack[];
+  isLoading: boolean;
   user: any;
   onSelectTrack: (t: PlayerTrack) => void;
   onOpenProfile: () => void;
@@ -207,12 +187,32 @@ function CatalogScreen({
       </div>
 
       <div className="section">
-        <h3 className="section-title"><Music size={18} /> Músicas Disponíveis ({filtered.length})</h3>
-        <div className="track-list">
-          {filtered.map((t) => (
-            <TrackRowItem key={t.id} track={t} onSelectTrack={onSelectTrack} />
-          ))}
-        </div>
+        <h3 className="section-title"><Music size={18} /> Músicas Disponíveis ({isLoading ? "..." : filtered.length})</h3>
+        
+        {isLoading ? (
+          <div className="track-list space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl animate-pulse">
+                <div className="w-12 h-12 bg-white/10 rounded-lg flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-white/10 rounded w-3/4" />
+                  <div className="h-3 bg-white/5 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <Music size={48} className="empty-icon" />
+            <p className="empty-text">Nenhuma faixa encontrada no catálogo</p>
+          </div>
+        ) : (
+          <div className="track-list">
+            {filtered.map((t) => (
+              <TrackRowItem key={t.id} track={t} onSelectTrack={onSelectTrack} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -383,7 +383,13 @@ function PlayerScreen({
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
 }) {
   const player = useAudioPlayer();
-  const track = player.current || DEFAULT_TRACKS[0];
+  const track = player.current || {
+    id: "empty",
+    title: "Selecione uma música",
+    artist: "TopDJ",
+    audioUrl: "",
+    coverUrl: DEFAULT_COVER,
+  };
 
   const colors = ["#7c3aed", "#4c1d95", "#2e1065", "#a21caf", "#1e1b4b"];
   const [shifts, setShifts] = useState([0, 1, 2, 3, 4]);
@@ -418,7 +424,7 @@ function PlayerScreen({
 
   return (
     <div className={`player-screen ${player.isPlaying ? "active" : ""}`}>
-      <img src={track.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt="" className="blur-bg" />
+      <img src={track.coverUrl || DEFAULT_COVER} alt="" className="blur-bg" />
 
       <div className="spotify-bg">
         <div className={`spotify-blob blob-1 ${player.isPlaying ? "animated" : ""}`} style={{ background: `radial-gradient(circle at 30% 20%, ${colors[shifts[0]]}cc 0%, ${colors[shifts[1]]}44 45%, transparent 70%)` }} />
@@ -428,7 +434,7 @@ function PlayerScreen({
       <div className="art-stage">
         <div className="player-art-wrapper">
           <div className="player-art-inner">
-            <img src={track.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={track.title} className="player-art" />
+            <img src={track.coverUrl || DEFAULT_COVER} alt={track.title} className="player-art" />
           </div>
         </div>
         <div className="floating-badge">
@@ -533,7 +539,7 @@ export default function TopDJMobile() {
     };
   }, []);
 
-  const { data: packs = [] } = useQuery({
+  const { data: packs = [], isLoading: isLoadingPacks } = useQuery({
     queryKey: ["packs"],
     queryFn: fetchPacks,
     retry: false,
@@ -543,7 +549,7 @@ export default function TopDJMobile() {
 
   const spotlightPack = packs[0];
 
-  const { data: realTracks = [] } = useQuery({
+  const { data: realTracks = [], isLoading: isLoadingTracks } = useQuery({
     queryKey: ["tracks", spotlightPack?.id],
     queryFn: () => fetchTracks(spotlightPack?.id),
     retry: false,
@@ -551,15 +557,15 @@ export default function TopDJMobile() {
     networkMode: "offlineFirst",
   });
 
-  const allTracks: PlayerTrack[] = realTracks.length > 0
-    ? realTracks.map((t) => ({
-        id: t.id,
-        title: t.title,
-        artist: spotlightPack?.dj || "TopDJ Oficial",
-        audioUrl: t.audio_url,
-        coverUrl: spotlightPack?.imagem_url || DEFAULT_TRACKS[0].coverUrl,
-      }))
-    : DEFAULT_TRACKS;
+  const allTracks: PlayerTrack[] = realTracks.map((t) => ({
+    id: t.id,
+    title: t.title,
+    artist: spotlightPack?.dj || "TopDJ Oficial",
+    audioUrl: t.audio_url,
+    coverUrl: spotlightPack?.imagem_url || DEFAULT_COVER,
+  }));
+
+  const isLoadingData = isLoadingPacks || isLoadingTracks;
 
   // Pré-salva silenciosamente os arquivos de áudio no cache offline se conectado
   useEffect(() => {
@@ -631,6 +637,7 @@ export default function TopDJMobile() {
         {screen === "catalog" && (
           <CatalogScreen
             tracks={allTracks}
+            isLoading={isLoadingData}
             user={user}
             onSelectTrack={selectAndPlay}
             onOpenProfile={() => setScreen("profile")}
@@ -642,31 +649,33 @@ export default function TopDJMobile() {
       </div>
 
       {/* Mini Player */}
-      <div className="mini-player" onClick={() => setShowPlayer(true)}>
-        <img
-          src={currentTrack?.coverUrl || DEFAULT_TRACKS[0].coverUrl}
-          alt=""
-          className="mini-cover"
-        />
-        <div className="mini-info">
-          <span className="mini-title">{currentTrack?.title || "Selecione uma faixa"}</span>
-          <span className="mini-artist">{currentTrack?.artist || "TopDJ"}</span>
+      {currentTrack && (
+        <div className="mini-player" onClick={() => setShowPlayer(true)}>
+          <img
+            src={currentTrack?.coverUrl || DEFAULT_COVER}
+            alt=""
+            className="mini-cover"
+          />
+          <div className="mini-info">
+            <span className="mini-title">{currentTrack?.title || "Selecione uma faixa"}</span>
+            <span className="mini-artist">{currentTrack?.artist || "TopDJ"}</span>
+          </div>
+          <Equalizer active={player.isPlaying} barCount={3} />
+          <button
+            className="mini-play"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!player.current && allTracks.length > 0) {
+                player.play(allTracks[0], allTracks);
+              } else {
+                player.toggle();
+              }
+            }}
+          >
+            {player.isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" />}
+          </button>
         </div>
-        <Equalizer active={player.isPlaying} barCount={3} />
-        <button
-          className="mini-play"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!player.current && allTracks.length > 0) {
-              player.play(allTracks[0], allTracks);
-            } else {
-              player.toggle();
-            }
-          }}
-        >
-          {player.isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" />}
-        </button>
-      </div>
+      )}
 
       {/* Bottom Nav */}
       <nav className="bottom-nav">
