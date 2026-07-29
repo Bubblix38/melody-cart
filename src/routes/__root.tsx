@@ -199,24 +199,26 @@ function RootComponent() {
     };
   }, [startProtection]);
 
-  if (isMobile) {
-    return <TopDJMobile />;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <BackgroundThemeProvider>
         <AudioPlayerProvider>
           <CartProvider>
-            <BackgroundScene />
-            <div className="flex min-h-screen flex-col pb-16">
-              <Header />
-              <main className="flex-1 pt-14">
-                <Outlet />
-              </main>
-            </div>
-            <CartDrawer />
-            <FixedPlayer />
+            {isMobile ? (
+              <TopDJMobile />
+            ) : (
+              <>
+                <BackgroundScene />
+                <div className="flex min-h-screen flex-col pb-16">
+                  <Header />
+                  <main className="flex-1 pt-14">
+                    <Outlet />
+                  </main>
+                </div>
+                <CartDrawer />
+                <FixedPlayer />
+              </>
+            )}
             <Toaster position="top-center" richColors theme="dark" />
           </CartProvider>
         </AudioPlayerProvider>
