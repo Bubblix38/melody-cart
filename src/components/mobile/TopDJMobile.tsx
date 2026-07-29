@@ -507,9 +507,7 @@ function PlayerScreen({
 }
 
 export default function TopDJMobile() {
-  // Sempre inicia no Catálogo por padrão
   const [screen, setScreen] = useState<Screen>("catalog");
-
   const [showPlayer, setShowPlayer] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [favorited, setFavorited] = useState<Set<string>>(new Set());
@@ -517,18 +515,19 @@ export default function TopDJMobile() {
   const player = useAudioPlayer();
 
   useEffect(() => {
-    // Se estiver retornando de um fluxo de login do Google (com tokens na URL ou na rota /perfil)
-    if (typeof window !== "undefined") {
-      if (
-        window.location.hash.includes("access_token") ||
-        window.location.search.includes("code=") ||
-        window.location.pathname.includes("perfil")
-      ) {
-        setScreen("profile");
-        // Limpa a rota /perfil da barra para / para que acessos futuros sempre comecem no Catálogo
-        window.history.replaceState({}, document.title, "/");
+    // Detecta evento oficial do Supabase ao concluir login com sucesso
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || session) {
+        // Alterna suavemente para a aba Perfil ao confirmar login
+        if (typeof window !== "undefined" && (window.location.hash.includes("access_token") || window.location.search.includes("code="))) {
+          setScreen("profile");
+        }
       }
-    }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const { data: packs = [] } = useQuery({
