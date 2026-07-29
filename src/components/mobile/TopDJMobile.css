@@ -325,7 +325,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 64px 20px calc(90px + env(safe-area-inset-bottom, 36px));
+  padding: 56px 16px calc(70px + env(safe-area-inset-bottom, 24px));
   position: relative;
   overflow-y: auto;
   background: #0a0a0f;
@@ -371,10 +371,10 @@
 
 .topdj-mobile-root .art-stage {
   position: relative;
-  width: min(65vw, 230px);
-  height: min(65vw, 230px);
+  width: min(78vw, 300px);
+  height: min(78vw, 300px);
   margin-top: 10px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   z-index: 1;
   flex-shrink: 0;
 }
