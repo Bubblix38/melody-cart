@@ -115,21 +115,21 @@ const MemoizedTrackRow = React.memo(({
 
       {/* Title */}
       <div className="flex items-center gap-3 overflow-hidden pr-2">
-        <span onClick={() => onPlay(track)} className={cn("font-bold text-sm truncate group-hover:underline cursor-pointer", isActive ? "text-spotify-green" : "text-white")}>
+        <span onClick={() => onPlay(track)} className={cn("font-medium text-sm truncate cursor-default", isActive ? "text-spotify-green font-bold" : "text-white")}>
           {track.title}
         </span>
       </div>
 
       {/* Artista */}
       <div className="hidden md:flex items-center overflow-hidden">
-        <span className="text-sm text-spotify-subtext truncate hover:underline hover:text-white cursor-pointer">
+        <span className="text-sm text-spotify-subtext truncate cursor-default">
           {pack.dj || "TopDJ Oficial"}
         </span>
       </div>
 
       {/* Álbum */}
       <div className="hidden md:flex items-center overflow-hidden">
-        <span className="text-sm text-spotify-subtext truncate hover:underline hover:text-white cursor-pointer">
+        <span className="text-sm text-spotify-subtext truncate cursor-default">
           {pack.nome || "Pack"}
         </span>
       </div>
@@ -147,8 +147,8 @@ const MemoizedTrackRow = React.memo(({
           onClick={(e) => { e.stopPropagation(); onToggleLike(track.id, isLiked); }}
           disabled={isPendingLike}
           className={cn(
-            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50",
-            isLiked ? "opacity-100 text-primary animate-pulse-once" : "opacity-0 group-hover:opacity-100 text-white/50 hover:text-white"
+            "cursor-pointer disabled:opacity-50",
+            isLiked ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-white/60 hover:text-white"
           )}
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
@@ -162,8 +162,8 @@ const MemoizedTrackRow = React.memo(({
           onClick={handleDownload}
           disabled={isDownloading || isCached}
           className={cn(
-            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-100",
-            isCached ? "text-spotify-green" : "opacity-0 group-hover:opacity-100 text-white/50 hover:text-white"
+            "cursor-pointer disabled:opacity-100",
+            isCached ? "text-spotify-green" : "opacity-0 group-hover:opacity-100 text-white/60 hover:text-white"
           )}
           title={isCached ? "Baixado para tocar offline" : "Baixar para tocar offline"}
         >
