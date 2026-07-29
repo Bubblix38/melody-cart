@@ -204,21 +204,22 @@ function RootComponent() {
       <BackgroundThemeProvider>
         <AudioPlayerProvider>
           <CartProvider>
-            {isMobile ? (
+            {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
+            <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
               <TopDJMobile />
-            ) : (
-              <>
-                <BackgroundScene />
-                <div className="flex min-h-screen flex-col pb-16">
-                  <Header />
-                  <main className="flex-1 pt-14">
-                    <Outlet />
-                  </main>
-                </div>
-                <CartDrawer />
-                <FixedPlayer />
-              </>
-            )}
+            </div>
+
+            {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
+            <div className="hidden md:flex min-h-screen flex-col pb-16">
+              <BackgroundScene />
+              <Header />
+              <main className="flex-1 pt-14">
+                <Outlet />
+              </main>
+              <CartDrawer />
+              <FixedPlayer />
+            </div>
+
             <Toaster position="top-center" richColors theme="dark" />
           </CartProvider>
         </AudioPlayerProvider>

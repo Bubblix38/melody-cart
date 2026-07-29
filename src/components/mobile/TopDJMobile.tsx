@@ -534,6 +534,9 @@ export default function TopDJMobile() {
   const { data: packs = [] } = useQuery({
     queryKey: ["packs"],
     queryFn: fetchPacks,
+    retry: false,
+    staleTime: Infinity,
+    networkMode: "offlineFirst",
   });
 
   const spotlightPack = packs[0];
@@ -541,6 +544,9 @@ export default function TopDJMobile() {
   const { data: realTracks = [] } = useQuery({
     queryKey: ["tracks", spotlightPack?.id],
     queryFn: () => fetchTracks(spotlightPack?.id),
+    retry: false,
+    staleTime: Infinity,
+    networkMode: "offlineFirst",
   });
 
   const allTracks: PlayerTrack[] = realTracks.length > 0
