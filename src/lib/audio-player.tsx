@@ -57,7 +57,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const audio = new Audio();
-    audio.preload = "metadata";
+    audio.preload = "auto";
     audio.volume = volume;
     audioRef.current = audio;
 
@@ -96,7 +96,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const play = useCallback(async (track: PlayerTrack, newQueue?: PlayerTrack[]) => {
+  const play = useCallback((track: PlayerTrack, newQueue?: PlayerTrack[]) => {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -113,30 +113,36 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     }
 
     setCurrent(track);
-    
-    // Tenta carregar do cache offline
-    let finalSrc = track.audioUrl;
-    if ('caches' in window) {
-      try {
-        const cache = await caches.open('topdj-audio-cache-v1');
-        const response = await cache.match(track.audioUrl);
-        if (response) {
-          const blob = await response.blob();
-          const objectUrl = URL.createObjectURL(blob);
-          finalSrc = objectUrl;
-          
-          if (audio.dataset.objectUrl) {
-            URL.revokeObjectURL(audio.dataset.objectUrl);
-          }
-          audio.dataset.objectUrl = objectUrl;
-        }
-      } catch (err) {
-        console.error("Erro ao ler cache de áudio", err);
-      }
+
+    // Limpa URL temporária antiga se existir
+    if (audio.dataset.objectUrl) {
+      URL.revokeObjectURL(audio.dataset.objectUrl);
+      delete audio.dataset.objectUrl;
     }
 
-    audio.src = finalSrc;
-    audio.play().catch((err) => console.error("Erro ao tocar áudio:", err));
+    // Atribui o áudio e toca imediatamente para preservar o gesto de clique no mobile (iOS / Android)
+    audio.src = track.audioUrl;
+    audio.play().catch((err) => {
+      console.error("Erro ao iniciar áudio:", err);
+    });
+
+    // Se estiver offline, verifica se existe versão salva em cache
+    if (typeof window !== "undefined" && "caches" in window && !navigator.onLine) {
+      caches.open("topdj-audio-cache-v1").then((cache) => {
+        cache.match(track.audioUrl).then((response) => {
+          if (response && response.ok) {
+            response.blob().then((blob) => {
+              if (blob.size > 0) {
+                const objectUrl = URL.createObjectURL(blob);
+                audio.src = objectUrl;
+                audio.dataset.objectUrl = objectUrl;
+                audio.play().catch(() => {});
+              }
+            });
+          }
+        });
+      });
+    }
 
     // Registra a audição (1 por IP único por faixa, contabilizado no servidor).
     registerPlayFn({ data: { trackId: track.id } }).catch(() => {
@@ -154,46 +160,32 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [current]);
 
-  const playAtOffset = useCallback(
-    (offset: number) => {
-      if (!current || queue.length === 0) return;
-      if (isShuffle && queue.length > 1) {
-        // Sorteia uma faixa diferente da atual.
-        let nextIdx = Math.floor(Math.random() * queue.length);
-        const currentIdx = queue.findIndex((t) => t.id === current.id);
-        if (nextIdx === currentIdx) nextIdx = (nextIdx + 1) % queue.length;
-        play(queue[nextIdx]);
-        return;
-      }
-      const idx = queue.findIndex((t) => t.id === current.id);
-      if (idx === -1) return;
-      const nextIdx = (idx + offset + queue.length) % queue.length;
-      play(queue[nextIdx]);
-    },
-    [current, queue, play, isShuffle],
-  );
+  const next = useCallback(() => {
+    if (!queue.length || !current) return;
+    const currentIndex = queue.findIndex((t) => t.id === current.id);
 
-  const next = useCallback(() => playAtOffset(1), [playAtOffset]);
-  const prev = useCallback(() => playAtOffset(-1), [playAtOffset]);
+    if (isShuffle) {
+      const randomIndex = Math.floor(Math.random() * queue.length);
+      play(queue[randomIndex]);
+      return;
+    }
 
-  const toggleShuffle = useCallback(() => setIsShuffle((s) => !s), []);
-  const toggleRepeat = useCallback(() => setIsRepeat((r) => !r), []);
+    if (currentIndex === -1 || currentIndex === queue.length - 1) {
+      play(queue[0]);
+    } else {
+      play(queue[currentIndex + 1]);
+    }
+  }, [queue, current, isShuffle, play]);
 
-  // Auto-avança ao terminar (respeitando repeat/shuffle).
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const onEnded = () => {
-      if (isRepeat) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      } else if (queue.length > 1) {
-        next();
-      }
-    };
-    audio.addEventListener("ended", onEnded);
-    return () => audio.removeEventListener("ended", onEnded);
-  }, [next, queue.length, isRepeat]);
+  const prev = useCallback(() => {
+    if (!queue.length || !current) return;
+    const currentIndex = queue.findIndex((t) => t.id === current.id);
+    if (currentIndex === -1 || currentIndex === 0) {
+      play(queue[queue.length - 1]);
+    } else {
+      play(queue[currentIndex - 1]);
+    }
+  }, [queue, current, play]);
 
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
@@ -204,21 +196,27 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const setVolume = useCallback((v: number) => {
     const audio = audioRef.current;
-    const clamped = Math.min(1, Math.max(0, v));
+    const clamped = Math.max(0, Math.min(1, v));
     setVolumeState(clamped);
     if (audio) {
       audio.volume = clamped;
-      audio.muted = false;
+      if (clamped > 0) audio.muted = false;
     }
-    setIsMuted(false);
   }, []);
 
   const toggleMute = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const nextMuted = !audio.muted;
-    audio.muted = nextMuted;
-    setIsMuted(nextMuted);
+    audio.muted = !audio.muted;
+    setIsMuted(audio.muted);
+  }, []);
+
+  const toggleShuffle = useCallback(() => {
+    setIsShuffle((prev) => !prev);
+  }, []);
+
+  const toggleRepeat = useCallback(() => {
+    setIsRepeat((prev) => !prev);
   }, []);
 
   return (
@@ -252,7 +250,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 export function useAudioPlayer() {
   const ctx = useContext(AudioPlayerContext);
   if (!ctx) {
-    throw new Error("useAudioPlayer deve ser usado dentro de AudioPlayerProvider");
+    throw new Error("useAudioPlayer deve ser usado dentro de um AudioPlayerProvider");
   }
   return ctx;
 }
