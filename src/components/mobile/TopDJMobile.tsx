@@ -244,6 +244,7 @@ function ProfileScreen() {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     return () => {
@@ -253,10 +254,11 @@ function ProfileScreen() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    const redirectUrl = `${window.location.origin}/perfil`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: redirectUrl,
         queryParams: {
           prompt: "select_account",
         },
@@ -296,7 +298,7 @@ function ProfileScreen() {
           </p>
           <button
             onClick={handleGoogleLogin}
-            className="w-full py-3 px-4 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-2 shadow-lg hover:bg-gray-100 transition-transform active:scale-95"
+            className="w-full py-3 px-4 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-2 shadow-lg hover:bg-gray-100 transition-transform active:scale-95 cursor-pointer"
           >
             <GoogleIcon />
             Entrar com a Conta Google
@@ -331,7 +333,7 @@ function ProfileScreen() {
 
           <button
             onClick={handleLogout}
-            className="w-full mt-4 py-3 px-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-semibold flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
+            className="w-full mt-4 py-3 px-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-semibold flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors cursor-pointer"
           >
             <LogOut size={18} />
             Sair da Conta Google
@@ -477,12 +479,36 @@ function PlayerScreen({
 }
 
 export default function TopDJMobile() {
-  const [screen, setScreen] = useState<Screen>("catalog");
+  const [screen, setScreen] = useState<Screen>(() => {
+    if (typeof window !== "undefined") {
+      if (
+        window.location.hash.includes("access_token") ||
+        window.location.search.includes("code=") ||
+        window.location.pathname.includes("perfil")
+      ) {
+        return "profile";
+      }
+    }
+    return "catalog";
+  });
+
   const [showPlayer, setShowPlayer] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [favorited, setFavorited] = useState<Set<string>>(new Set());
 
   const player = useAudioPlayer();
+
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        setScreen("profile");
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   const { data: packs = [] } = useQuery({
     queryKey: ["packs"],
