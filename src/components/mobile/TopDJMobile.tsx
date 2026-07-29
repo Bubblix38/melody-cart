@@ -282,7 +282,7 @@ function ProfileScreen() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const redirectUrl = window.location.origin;
+    const redirectUrl = `${window.location.origin}/perfil`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -517,12 +517,16 @@ export default function TopDJMobile() {
   const player = useAudioPlayer();
 
   useEffect(() => {
-    // Se o usuário estiver voltando ativamente de um fluxo de login do Google (com tokens na URL)
+    // Se estiver retornando de um fluxo de login do Google (com tokens na URL ou na rota /perfil)
     if (typeof window !== "undefined") {
-      if (window.location.hash.includes("access_token") || window.location.search.includes("code=")) {
+      if (
+        window.location.hash.includes("access_token") ||
+        window.location.search.includes("code=") ||
+        window.location.pathname.includes("perfil")
+      ) {
         setScreen("profile");
-        // Limpa os tokens da barra de endereço para não travar em /perfil nas próximas visitas
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Limpa a rota /perfil da barra para / para que acessos futuros sempre comecem no Catálogo
+        window.history.replaceState({}, document.title, "/");
       }
     }
   }, []);
