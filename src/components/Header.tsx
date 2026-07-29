@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, ChevronDown, User, Disc3, ShoppingCart, Palette, Check, LogOut } from "lucide-react";
+import { Search, ChevronDown, User, Disc3, ShoppingCart, Palette, Check, LogOut, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/lib/cart";
@@ -62,6 +62,7 @@ function BackgroundThemePicker() {
 export function Header() {
   const { totalItens, setOpen } = useCart();
   const [session, setSession] = useState<any>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,13 +92,18 @@ export function Header() {
     <header className="glass-nav fixed top-0 z-50 w-full border-b border-white/10">
       <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-8 px-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/20">
-            <Disc3 className="h-5 w-5" />
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-tr from-[#1DB954] to-emerald-400 text-black shadow-lg shadow-spotify-green/20">
+            <Disc3 className="h-5 w-5 animate-spin-slow" />
           </div>
-          <span className="font-display text-xl font-extrabold tracking-tight text-white">
-            TOPDJ
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-display text-xl font-black tracking-tighter text-white">
+              TOP<span className="text-spotify-green">DJ</span>
+            </span>
+            <span className="hidden sm:inline-block text-[9px] font-extrabold tracking-widest text-spotify-green bg-spotify-green/10 border border-spotify-green/20 rounded-sm px-1.5 py-0.5 uppercase">
+              DJ Pool
+            </span>
+          </div>
         </Link>
 
         {/* Navigation & Search */}
@@ -180,9 +186,49 @@ export function Header() {
                 Entrar
               </Link>
             )}
+
+            {/* Hamburger Menu Trigger */}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 transition-colors hover:bg-white/10 md:hidden cursor-pointer"
+              aria-label="Menu principal"
+            >
+              {menuOpen ? <X className="h-4 w-4 text-white" /> : <Menu className="h-4 w-4 text-white" />}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Nav Overlay */}
+      {menuOpen && (
+        <div className="md:hidden fixed top-14 left-0 w-full bg-[#121212]/95 backdrop-blur-xl border-b border-white/10 z-40 animate-in slide-in-from-top duration-200">
+          <div className="flex flex-col gap-4 p-6">
+            <nav className="flex flex-col gap-2">
+              {navLinks.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  onClick={() => setMenuOpen(false)}
+                  className="text-base font-semibold text-white/70 hover:text-white transition-colors py-2.5 border-b border-white/5"
+                  activeProps={{ className: "text-spotify-green" }}
+                  activeOptions={{ exact: l.to === "/" }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+            {/* Mobile Search */}
+            <div className="relative mt-2">
+              <input
+                type="text"
+                placeholder="Pesquisar faixas, artistas..."
+                className="w-full rounded-md border-none bg-white/10 px-4 py-2.5 text-sm text-white outline-hidden transition-all focus:bg-white/15"
+              />
+              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -86,7 +86,7 @@ const MemoizedTrackRow = React.memo(({
     <div 
       onDoubleClick={() => onPlay(track)}
       className={cn(
-        "group grid gap-2 md:gap-4 px-4 md:px-8 py-2 hover:bg-white/10 rounded-md items-center cursor-default transition-colors track-grid-mobile",
+        "group grid gap-2 md:gap-4 px-4 md:px-8 py-1.5 hover:bg-white/10 rounded-md items-center cursor-default transition-colors track-grid-mobile",
         isActive && "bg-white/5"
       )}
     >
@@ -146,8 +146,8 @@ const MemoizedTrackRow = React.memo(({
           onClick={handleDownload}
           disabled={isDownloading || isCached}
           className={cn(
-            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-100 hidden md:block",
-            isCached ? "text-spotify-green" : "opacity-0 group-hover:opacity-100 text-white/50 hover:text-white"
+            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-100",
+            isCached ? "text-spotify-green animate-bounce-once" : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-white/70 md:text-white/50 hover:text-white"
           )}
           title={isCached ? "Baixado" : "Baixar para tocar offline"}
         >
@@ -157,8 +157,8 @@ const MemoizedTrackRow = React.memo(({
           onClick={(e) => { e.stopPropagation(); onToggleLike(track.id, isLiked); }}
           disabled={isPendingLike}
           className={cn(
-            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50 hidden md:block",
-            isLiked ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-white hover:text-white"
+            "cursor-pointer hover:scale-110 transition-transform disabled:opacity-50",
+            isLiked ? "opacity-100 text-primary animate-pulse-once" : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-white/70 md:text-white hover:text-white"
           )}
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
@@ -174,12 +174,6 @@ const MemoizedTrackRow = React.memo(({
     </div>
   );
 });
-
-
-type SortConfig = {
-  key: 'title' | 'album' | 'date';
-  direction: 'asc' | 'desc';
-} | null;
 
 export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
   const { play, toggle, current, isPlaying } = useAudioPlayer();
@@ -319,7 +313,7 @@ export function SpotifyTrackTable({ tracks, pack }: SpotifyTrackTableProps) {
     <div className="w-full text-spotify-subtext pb-20 select-none" style={gridStyle}>
       {/* Table Header */}
       <div 
-        className="hidden md:grid gap-4 px-8 py-2 border-b border-white/10 text-xs font-medium uppercase tracking-wider mb-2 sticky top-0 bg-[#121212] z-30 pt-4 group/header track-grid-mobile"
+        className="hidden md:grid gap-4 px-8 py-1.5 border-b border-white/10 text-xs font-semibold tracking-wide mb-2 sticky top-0 bg-[#121212] z-30 pt-3 group/header track-grid-mobile"
       >
         <div className="text-center">#</div>
         

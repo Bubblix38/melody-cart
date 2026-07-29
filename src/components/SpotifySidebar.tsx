@@ -66,8 +66,8 @@ export function SpotifySidebar() {
               className="w-12 h-12 rounded object-cover shrink-0" 
             />
             <div className="flex flex-col overflow-hidden">
-              <span className="text-[#1DB954] font-medium text-[15px] truncate">ALL NIGHT</span>
-              <span className="text-sm truncate text-spotify-subtext mt-0.5">Single • IMAGINEA</span>
+              <span className="text-[#1DB954] font-medium text-[15px] truncate">All Night (VIP Edit)</span>
+              <span className="text-sm truncate text-spotify-subtext mt-0.5">Tech House • Imaginea</span>
             </div>
           </div>
 
@@ -105,8 +105,8 @@ export function SpotifySidebar() {
               className="w-12 h-12 rounded object-cover shrink-0" 
             />
             <div className="flex flex-col overflow-hidden">
-              <span className="text-white font-medium text-[15px] truncate">TOP SERTANEJO 🔥 Segundo Amor...</span>
-              <span className="text-sm truncate text-spotify-subtext mt-0.5">Playlist • Joe Alves</span>
+              <span className="text-white font-medium text-[15px] truncate">Sertanejo Remixes & Mashups</span>
+              <span className="text-sm truncate text-spotify-subtext mt-0.5">DJ Pack • Joe Alves</span>
             </div>
           </div>
 

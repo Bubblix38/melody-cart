@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 
 import "@fontsource/sora/500.css";
 import "@fontsource/sora/600.css";
@@ -27,6 +27,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { Toaster } from "@/components/ui/sonner";
 import { FixedPlayer } from "@/components/FixedPlayer";
 import { BackgroundScene } from "@/components/BackgroundScene";
+import TopDJMobile from "@/components/mobile/TopDJMobile";
 
 function NotFoundComponent() {
   return (
@@ -156,8 +157,21 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { startProtection } = useDevToolsProtection();
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    return false;
+  });
 
   useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(mobile);
+    };
+
+    window.addEventListener("resize", handleResize);
+
     // Registrar Service Worker para modo offline PWA
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       window.addEventListener("load", () => {
@@ -180,9 +194,14 @@ function RootComponent() {
       window.location.href = "https://www.fbi.gov/investigate/cyber";
     }
     return () => {
+      window.removeEventListener("resize", handleResize);
       stopProtection();
     };
   }, [startProtection]);
+
+  if (isMobile) {
+    return <TopDJMobile />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

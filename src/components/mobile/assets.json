@@ -1,0 +1,19 @@
+{
+  "images": {
+    "neonWaves": {
+      "url": "https://agent8-games.verse8.io/0xe5a00eaa7fc8a8b6c9483d094574fef92bf34751/mcp-uploads/static-assets/background-1785292497513.png",
+      "description": "Premium electronic music album cover - neon purple and blue gradient, futuristic DJ aesthetic",
+      "metadata": { "width": 816, "height": 816 }
+    },
+    "deepBlue": {
+      "url": "https://agent8-games.verse8.io/0xe5a00eaa7fc8a8b6c9483d094574fef92bf34751/mcp-uploads/static-assets/background-1785292504126.png",
+      "description": "EDM album cover - deep blue and cyan neon waves with soundwave visualization",
+      "metadata": { "width": 816, "height": 816 }
+    },
+    "festivalAmber": {
+      "url": "https://agent8-games.verse8.io/0xe5a00eaa7fc8a8b6c9483d094574fef92bf34751/mcp-uploads/static-assets/background-1785292505849.png",
+      "description": "Festival album cover - warm orange and amber neon lights, concert vibes",
+      "metadata": { "width": 816, "height": 816 }
+    }
+  }
+}

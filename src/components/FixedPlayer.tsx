@@ -107,10 +107,10 @@ export function FixedPlayer() {
           <button
             onClick={prev}
             disabled={!current}
-            className="hidden text-white/60 transition-colors hover:text-white disabled:opacity-30 sm:block"
+            className="text-white/60 transition-colors hover:text-white disabled:opacity-30 block"
             aria-label="Faixa anterior"
           >
-            <SkipBack className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+            <SkipBack className="h-5 w-5 fill-current" />
           </button>
           <button
             onClick={toggle}
@@ -119,18 +119,18 @@ export function FixedPlayer() {
             aria-label={isPlaying ? "Pausar" : "Tocar"}
           >
             {isPlaying ? (
-              <Pause className="h-5 w-5 md:h-5 md:w-5 fill-current" />
+              <Pause className="h-5 w-5 fill-current" />
             ) : (
-              <Play className="h-5 w-5 md:h-5 md:w-5 fill-current" />
+              <Play className="h-5 w-5 fill-current" />
             )}
           </button>
           <button
             onClick={next}
             disabled={!current}
-            className="hidden text-white/60 transition-colors hover:text-white disabled:opacity-30 sm:block"
+            className="text-white/60 transition-colors hover:text-white disabled:opacity-30 block"
             aria-label="Próxima faixa"
           >
-            <SkipForward className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+            <SkipForward className="h-5 w-5 fill-current" />
           </button>
           <button
             onClick={toggleShuffle}

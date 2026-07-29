@@ -91,8 +91,8 @@ function Index() {
         <div className="gsap-hero will-change-transform">
           {spotlightPack && (
             <SpotifyHero 
-              title={spotlightPack.nome || "FUNK COM ELETRÔNICA"}
-              description={spotlightPack.descricao || "CLIQUE NO (+) PARA RECEBER MÚSICA NOVA TODA SEMANA — funk com música eletrônica, tech house e outras..."}
+              title={spotlightPack.nome || "Funk com Eletrônica: Premium Club Edits"}
+              description={spotlightPack.descricao || "Curadoria exclusiva para DJs profissionais. Tracks prontas para pista com BPM, Key e tags de gênero. Atualizado toda semana."}
               imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=400&h=400&fit=crop"}
               creator={spotlightPack.dj || "TopDJ Records"}
               likes={Math.floor(Math.random() * 900 + 100).toString() + "k"}
