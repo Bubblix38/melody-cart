@@ -33,7 +33,6 @@ export function SpotifyHero({
         />
         
         <div className="flex flex-col gap-1 md:gap-2 w-full text-white mt-4 md:mt-0 text-left">
-          <span className="text-xs md:text-sm font-semibold text-spotify-green hidden md:block">DJ Pool Oficial</span>
           <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight line-clamp-2">
             {title}
           </h1>

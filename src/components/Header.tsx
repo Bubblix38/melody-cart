@@ -100,9 +100,6 @@ export function Header() {
             <span className="font-display text-xl font-black tracking-tighter text-white">
               TOP<span className="text-spotify-green">DJ</span>
             </span>
-            <span className="hidden sm:inline-block text-[9px] font-extrabold tracking-widest text-spotify-green bg-spotify-green/10 border border-spotify-green/20 rounded-sm px-1.5 py-0.5 uppercase">
-              DJ Pool
-            </span>
           </div>
         </Link>
 
