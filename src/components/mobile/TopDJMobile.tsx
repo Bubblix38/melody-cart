@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchPacks, type Pack } from "@/lib/packs";
 import { fetchTracks, type Track as RealTrack } from "@/lib/tracks";
 import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
@@ -26,6 +27,7 @@ import {
   Clock,
   Music,
   Radio,
+  LogOut,
 } from "lucide-react";
 import "./TopDJMobile.css";
 
@@ -36,6 +38,29 @@ function formatTime(s: number): string {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
   return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
+function GoogleIcon() {
+  return (
+    <svg className="w-5 h-5 mr-2 inline-block" viewBox="0 0 24 24">
+      <path
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+        fill="#34A853"
+      />
+      <path
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
 }
 
 interface Confetti {
@@ -208,27 +233,111 @@ function FavoritesScreen({
 }
 
 function ProfileScreen() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.href,
+        queryParams: {
+          prompt: "select_account",
+        },
+      },
+    });
+    if (error) {
+      alert("Erro ao conectar com Google: " + error.message);
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || "Usuário TopDJ";
+  const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+  const userEmail = user?.email || "";
+
   return (
     <div className="screen profile-screen">
       <h2 className="screen-title">Perfil</h2>
-      <div className="profile-card">
-        <div className="profile-avatar"><User size={40} /></div>
-        <div className="profile-info">
-          <span className="profile-name">DJ Entusiasta</span>
-          <span className="profile-level">Nível Premium</span>
+
+      {loading ? (
+        <div className="empty-state">
+          <p className="empty-text">Carregando perfil...</p>
         </div>
-      </div>
-      <div className="section">
-        <h3 className="section-title">Estatísticas</h3>
-        <div className="stats-grid">
-          {[{ v: "247", l: "Horas" }, { v: "1.2k", l: "Faixas" }, { v: "48", l: "DJs" }, { v: "12", l: "Playlists" }].map((s) => (
-            <div key={s.l} className="stat-card">
-              <span className="stat-value">{s.v}</span>
-              <span className="stat-label">{s.l}</span>
+      ) : !user ? (
+        <div className="profile-card flex-col text-center p-6 gap-4">
+          <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-2">
+            <User size={36} className="text-purple-400" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Conecte sua conta</h3>
+          <p className="text-xs text-gray-400 mb-2">
+            Faça login com a sua Conta Google para sincronizar suas faixas, favoritos e compras em qualquer dispositivo.
+          </p>
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full py-3 px-4 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-2 shadow-lg hover:bg-gray-100 transition-transform active:scale-95"
+          >
+            <GoogleIcon />
+            Entrar com a Conta Google
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="profile-card">
+            {userAvatar ? (
+              <img src={userAvatar} alt={userName} className="w-16 h-16 rounded-full object-cover border-2 border-purple-500" />
+            ) : (
+              <div className="profile-avatar"><User size={40} /></div>
+            )}
+            <div className="profile-info flex-1">
+              <span className="profile-name text-white font-bold">{userName}</span>
+              <span className="profile-level text-purple-400 text-xs">{userEmail}</span>
+              <span className="text-[10px] text-emerald-400 font-semibold mt-1 inline-block">✓ Conta Google Conectada</span>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+
+          <div className="section">
+            <h3 className="section-title">Estatísticas do Perfil</h3>
+            <div className="stats-grid">
+              {[{ v: "247", l: "Horas Ouvidas" }, { v: "1.2k", l: "Faixas Acessadas" }, { v: "48", l: "DJs Favoritos" }, { v: "12", l: "Packs Baixados" }].map((s) => (
+                <div key={s.l} className="stat-card">
+                  <span className="stat-value">{s.v}</span>
+                  <span className="stat-label">{s.l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="w-full mt-4 py-3 px-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-semibold flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
+          >
+            <LogOut size={18} />
+            Sair da Conta Google
+          </button>
+        </>
+      )}
     </div>
   );
 }
