@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchPacks, type Pack } from "@/lib/packs";
 import { fetchTracks, type Track as RealTrack } from "@/lib/tracks";
 import { useAudioPlayer, type PlayerTrack } from "@/lib/audio-player";
+import { cacheAudio, isAudioCached } from "@/lib/offline-storage";
 import Equalizer from "./Equalizer";
 import {
   Play,
@@ -28,6 +29,8 @@ import {
   Music,
   Radio,
   LogOut,
+  ArrowDownToLine,
+  CheckCircle2,
 } from "lucide-react";
 import "./TopDJMobile.css";
 
@@ -101,6 +104,52 @@ const navItems: { screen: Screen; icon: typeof Search; label: string }[] = [
   { screen: "profile", icon: User, label: "Perfil" },
 ];
 
+function TrackRowItem({
+  track,
+  onSelectTrack,
+}: {
+  track: PlayerTrack;
+  onSelectTrack: (t: PlayerTrack) => void;
+}) {
+  const [cached, setCached] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    isAudioCached(track.audioUrl).then(setCached);
+  }, [track.audioUrl]);
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (cached || downloading) return;
+    setDownloading(true);
+    const ok = await cacheAudio(track.audioUrl);
+    if (ok) setCached(true);
+    setDownloading(false);
+  };
+
+  return (
+    <div className="track-row" onClick={() => onSelectTrack(track)}>
+      <img src={track.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={track.title} className="track-thumb" style={{ width: 48, height: 48 }} />
+      <div className="track-meta">
+        <span className="track-name">{track.title}</span>
+        <span className="track-sub">{track.artist}</span>
+      </div>
+      <button
+        onClick={handleDownload}
+        className="p-2 text-gray-400 hover:text-emerald-400 transition-colors cursor-pointer"
+        title={cached ? "Salvo para tocar offline" : "Salvar no celular para tocar offline"}
+      >
+        {cached ? (
+          <CheckCircle2 size={18} className="text-emerald-400" />
+        ) : (
+          <ArrowDownToLine size={18} className={downloading ? "animate-pulse text-purple-400" : ""} />
+        )}
+      </button>
+      <Play size={18} className="text-purple-400 ml-1" />
+    </div>
+  );
+}
+
 function CatalogScreen({
   tracks,
   onSelectTrack,
@@ -145,14 +194,7 @@ function CatalogScreen({
         <h3 className="section-title"><Music size={18} /> Músicas Disponíveis ({filtered.length})</h3>
         <div className="track-list">
           {filtered.map((t) => (
-            <div key={t.id} className="track-row" onClick={() => onSelectTrack(t)}>
-              <img src={t.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={t.title} className="track-thumb" style={{ width: 48, height: 48 }} />
-              <div className="track-meta">
-                <span className="track-name">{t.title}</span>
-                <span className="track-sub">{t.artist}</span>
-              </div>
-              <Play size={18} className="text-purple-400" />
-            </div>
+            <TrackRowItem key={t.id} track={t} onSelectTrack={onSelectTrack} />
           ))}
         </div>
       </div>
@@ -181,14 +223,7 @@ function LibraryScreen({
       ) : (
         <div className="track-list">
           {likedTracks.map((t) => (
-            <div key={t.id} className="track-row" onClick={() => onSelectTrack(t)}>
-              <img src={t.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={t.title} className="track-thumb" style={{ width: 48, height: 48 }} />
-              <div className="track-meta">
-                <span className="track-name">{t.title}</span>
-                <span className="track-sub">{t.artist}</span>
-              </div>
-              <Heart size={16} className="like-icon filled" />
-            </div>
+            <TrackRowItem key={t.id} track={t} onSelectTrack={onSelectTrack} />
           ))}
         </div>
       )}
@@ -217,14 +252,7 @@ function FavoritesScreen({
       ) : (
         <div className="track-list">
           {favTracks.map((t) => (
-            <div key={t.id} className="track-row" onClick={() => onSelectTrack(t)}>
-              <img src={t.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={t.title} className="track-thumb" style={{ width: 48, height: 48 }} />
-              <div className="track-meta">
-                <span className="track-name">{t.title}</span>
-                <span className="track-sub">{t.artist}</span>
-              </div>
-              <Star size={16} className="fav-icon filled" />
-            </div>
+            <TrackRowItem key={t.id} track={t} onSelectTrack={onSelectTrack} />
           ))}
         </div>
       )}
@@ -532,8 +560,22 @@ export default function TopDJMobile() {
       }))
     : DEFAULT_TRACKS;
 
+  // Pré-salva silenciosamente os arquivos de áudio no cache offline se conectado
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.onLine) {
+      allTracks.forEach((t) => {
+        if (t.audioUrl) {
+          cacheAudio(t.audioUrl).catch(() => {});
+        }
+      });
+    }
+  }, [allTracks]);
+
   const selectAndPlay = useCallback(
     (t: PlayerTrack) => {
+      if (t.audioUrl) {
+        cacheAudio(t.audioUrl).catch(() => {});
+      }
       player.play(t, allTracks);
       setShowPlayer(true);
     },
