@@ -17,7 +17,6 @@ import {
   Share2,
   ShoppingBag,
   Upload,
-  Home,
   Search,
   Library,
   Bookmark,
@@ -30,7 +29,7 @@ import {
 } from "lucide-react";
 import "./TopDJMobile.css";
 
-type Screen = "home" | "search" | "library" | "favorites" | "profile";
+type Screen = "catalog" | "library" | "favorites" | "profile";
 
 function formatTime(s: number): string {
   if (!s || isNaN(s)) return "0:00";
@@ -46,7 +45,6 @@ interface Confetti {
   emoji: string;
 }
 
-// Fallback tracks caso o banco ainda não tenha músicas cadastradas
 const DEFAULT_TRACKS: PlayerTrack[] = [
   {
     id: "demo-1",
@@ -71,62 +69,14 @@ const DEFAULT_TRACKS: PlayerTrack[] = [
   },
 ];
 
-const navItems: { screen: Screen; icon: typeof Home; label: string }[] = [
-  { screen: "home", icon: Home, label: "Home" },
-  { screen: "search", icon: Search, label: "Buscar" },
+const navItems: { screen: Screen; icon: typeof Search; label: string }[] = [
+  { screen: "catalog", icon: Search, label: "Catálogo" },
   { screen: "library", icon: Library, label: "Biblioteca" },
   { screen: "favorites", icon: Bookmark, label: "Favoritos" },
   { screen: "profile", icon: User, label: "Perfil" },
 ];
 
-function HomeScreen({
-  tracks,
-  onSelectTrack,
-}: {
-  tracks: PlayerTrack[];
-  onSelectTrack: (t: PlayerTrack) => void;
-}) {
-  return (
-    <div className="screen home-screen">
-      <div className="screen-header">
-        <h1 className="brand-title">TOPDJ</h1>
-        <span className="brand-sub">Streaming Premium</span>
-      </div>
-      <div className="section">
-        <h3 className="section-title"><TrendingUp size={18} /> Em Alta</h3>
-        <div className="featured-grid">
-          {tracks.slice(0, 3).map((t, i) => (
-            <div key={t.id || i} className="featured-card" onClick={() => onSelectTrack(t)}>
-              <img src={t.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={t.title} style={{ width: "100%", height: "auto" }} />
-              <div className="featured-tag">FEATURED</div>
-              <div className="featured-info">
-                <span className="featured-title">{t.title}</span>
-                <span className="featured-artist">{t.artist}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="section">
-        <h3 className="section-title"><Music size={18} /> Para Você</h3>
-        <div className="track-list">
-          {tracks.map((t) => (
-            <div key={t.id} className="track-row" onClick={() => onSelectTrack(t)}>
-              <img src={t.coverUrl || DEFAULT_TRACKS[0].coverUrl} alt={t.title} className="track-thumb" style={{ width: 48, height: 48 }} />
-              <div className="track-meta">
-                <span className="track-name">{t.title}</span>
-                <span className="track-sub">{t.artist || "TopDJ"}</span>
-              </div>
-              <Play size={18} className="text-purple-400" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SearchScreen({
+function CatalogScreen({
   tracks,
   onSelectTrack,
 }: {
@@ -141,6 +91,11 @@ function SearchScreen({
 
   return (
     <div className="screen search-screen">
+      <div className="screen-header">
+        <h1 className="brand-title">TOPDJ</h1>
+        <span className="brand-sub">Catálogo de Músicas</span>
+      </div>
+
       <div className="search-bar">
         <Search size={18} className="search-icon" />
         <input
@@ -151,6 +106,7 @@ function SearchScreen({
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+
       <div className="section">
         <h3 className="section-title"><Radio size={18} /> Gêneros Populares</h3>
         <div className="genre-grid">
@@ -159,8 +115,9 @@ function SearchScreen({
           ))}
         </div>
       </div>
+
       <div className="section">
-        <h3 className="section-title"><Clock size={18} /> Resultados ({filtered.length})</h3>
+        <h3 className="section-title"><Music size={18} /> Músicas Disponíveis ({filtered.length})</h3>
         <div className="track-list">
           {filtered.map((t) => (
             <div key={t.id} className="track-row" onClick={() => onSelectTrack(t)}>
@@ -169,6 +126,7 @@ function SearchScreen({
                 <span className="track-name">{t.title}</span>
                 <span className="track-sub">{t.artist}</span>
               </div>
+              <Play size={18} className="text-purple-400" />
             </div>
           ))}
         </div>
@@ -410,14 +368,13 @@ function PlayerScreen({
 }
 
 export default function TopDJMobile() {
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>("catalog");
   const [showPlayer, setShowPlayer] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [favorited, setFavorited] = useState<Set<string>>(new Set());
 
   const player = useAudioPlayer();
 
-  // Buscar Packs e Tracks reais do Supabase
   const { data: packs = [] } = useQuery({
     queryKey: ["packs"],
     queryFn: fetchPacks,
@@ -430,7 +387,6 @@ export default function TopDJMobile() {
     queryFn: () => fetchTracks(spotlightPack?.id),
   });
 
-  // Mapeia para formato do PlayerTrack
   const allTracks: PlayerTrack[] = realTracks.length > 0
     ? realTracks.map((t) => ({
         id: t.id,
@@ -486,8 +442,7 @@ export default function TopDJMobile() {
   return (
     <div className="topdj-mobile-root">
       <div className="main-content">
-        {screen === "home" && <HomeScreen tracks={allTracks} onSelectTrack={selectAndPlay} />}
-        {screen === "search" && <SearchScreen tracks={allTracks} onSelectTrack={selectAndPlay} />}
+        {screen === "catalog" && <CatalogScreen tracks={allTracks} onSelectTrack={selectAndPlay} />}
         {screen === "library" && <LibraryScreen liked={liked} tracks={allTracks} onSelectTrack={selectAndPlay} />}
         {screen === "favorites" && <FavoritesScreen favorited={favorited} tracks={allTracks} onSelectTrack={selectAndPlay} />}
         {screen === "profile" && <ProfileScreen />}
