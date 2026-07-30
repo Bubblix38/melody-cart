@@ -3,12 +3,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { FixedPlayer } from "@/components/FixedPlayer";
 import { CartDrawer } from "@/components/CartDrawer";
-import { BackgroundThemeProvider, BackgroundScene } from "@/components/BackgroundTheme";
 import { CartProvider } from "@/lib/cart";
 import { AudioPlayerProvider } from "@/lib/audio-player";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
-import { TopDJMobile } from "@/components/mobile/TopDJMobile";
+import TopDJMobile from "@/components/mobile/TopDJMobile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +22,7 @@ export const Route = createFileRoute("__root")({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-[#width], initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
       { title: "TopDJ — A Maior Loja de Packs de Música Eletrônica e Funk do Brasil" },
       { name: "description", content: "Baixe os melhores packs de música para DJs. Produções de alta qualidade em WAV/MP3 320kbps. Lançamentos semanais." },
     ],
@@ -84,29 +83,31 @@ function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BackgroundThemeProvider>
-        <AudioPlayerProvider>
-          <CartProvider>
-            {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
-            <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
-              <TopDJMobile />
-            </div>
+      <AudioPlayerProvider>
+        <CartProvider>
+          <html lang="pt-BR" className="dark">
+            <head />
+            <body className="custom-scrollbar selection:bg-primary/30">
+              {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
+              <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
+                <TopDJMobile />
+              </div>
 
-            {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
-            <div className="hidden md:flex h-screen w-screen overflow-hidden bg-black flex-col select-none">
-              <BackgroundScene />
-              <Header />
-              <main className="flex-1 w-full relative z-10 overflow-hidden">
-                <Outlet />
-              </main>
+              {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
+              <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
+                <Header />
+                <main className="flex-1 overflow-hidden bg-black relative">
+                  <Outlet />
+                </main>
+                <FixedPlayer />
+              </div>
+
               <CartDrawer />
-              <FixedPlayer />
-            </div>
-
-            <Toaster position="top-center" richColors theme="dark" />
-          </CartProvider>
-        </AudioPlayerProvider>
-      </BackgroundThemeProvider>
+              <Toaster position="top-center" richColors theme="dark" />
+            </body>
+          </html>
+        </CartProvider>
+      </AudioPlayerProvider>
     </QueryClientProvider>
   );
 }
