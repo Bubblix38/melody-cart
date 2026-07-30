@@ -8,7 +8,7 @@ import { AudioPlayerProvider } from "@/lib/audio-player";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import TopDJMobile from "@/components/mobile/TopDJMobile";
-import "@/styles.css";
+import appCss from "@/styles.css?url";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,6 +26,9 @@ export const Route = createFileRoute("__root")({
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
       { title: "TopDJ — A Maior Loja de Packs de Música Eletrônica e Funk do Brasil" },
       { name: "description", content: "Baixe os melhores packs de música para DJs. Produções de alta qualidade em WAV/MP3 320kbps. Lançamentos semanais." },
+    ],
+    links: [
+      { rel: "stylesheet", href: appCss },
     ],
   }),
   component: RootLayout,
