@@ -8,6 +8,7 @@ import { AudioPlayerProvider } from "@/lib/audio-player";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import TopDJMobile from "@/components/mobile/TopDJMobile";
+import "@/styles.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,27 +86,22 @@ function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AudioPlayerProvider>
         <CartProvider>
-          <html lang="pt-BR" className="dark">
-            <head />
-            <body className="custom-scrollbar selection:bg-primary/30">
-              {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
-              <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
-                <TopDJMobile />
-              </div>
+          {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
+          <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
+            <TopDJMobile />
+          </div>
 
-              {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
-              <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
-                <Header />
-                <main className="flex-1 overflow-hidden bg-black relative">
-                  <Outlet />
-                </main>
-                <FixedPlayer />
-              </div>
+          {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
+          <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
+            <Header />
+            <main className="flex-1 overflow-hidden bg-black relative">
+              <Outlet />
+            </main>
+            <FixedPlayer />
+          </div>
 
-              <CartDrawer />
-              <Toaster position="top-center" richColors theme="dark" />
-            </body>
-          </html>
+          <CartDrawer />
+          <Toaster position="top-center" richColors theme="dark" />
         </CartProvider>
       </AudioPlayerProvider>
     </QueryClientProvider>
