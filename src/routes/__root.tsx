@@ -1,27 +1,85 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Header } from "@/components/Header";
-import { FixedPlayer } from "@/components/FixedPlayer";
-import { CartDrawer } from "@/components/CartDrawer";
-import { BackgroundThemeProvider } from "@/lib/background-theme";
-import { BackgroundScene } from "@/components/BackgroundScene";
+import { type ReactNode, useEffect } from "react";
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+  Scripts,
+  Link,
+  useRouter,
+} from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { logSecurityEvent } from "@/lib/security-logger";
 import { CartProvider } from "@/lib/cart";
+import { BackgroundThemeProvider } from "@/lib/background-theme";
 import { AudioPlayerProvider } from "@/lib/audio-player";
-import { Toaster } from "sonner";
-import { useEffect, useState } from "react";
+import { useDevToolsProtection } from "@/lib/devtools-protection";
+import { Header } from "@/components/Header";
+import { CartDrawer } from "@/components/CartDrawer";
+import { Toaster } from "@/components/ui/sonner";
+import { FixedPlayer } from "@/components/FixedPlayer";
+import { BackgroundScene } from "@/components/BackgroundScene";
 import TopDJMobile from "@/components/mobile/TopDJMobile";
 import appCss from "@/styles.css?url";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+function NotFoundComponent() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-7xl font-bold text-foreground">404</h1>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          A página que você procura não existe ou foi movida.
+        </p>
+        <div className="mt-6">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Voltar ao início
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-export const Route = createFileRoute("__root")({
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  console.error(error);
+  const router = useRouter();
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Esta página não carregou
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Algo deu errado. Tente atualizar ou voltar ao início.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Tentar novamente
+          </button>
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            Voltar ao início
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -30,61 +88,47 @@ export const Route = createFileRoute("__root")({
       { name: "description", content: "Baixe os melhores packs de música para DJs. Produções de alta qualidade em WAV/MP3 320kbps. Lançamentos semanais." },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
+      {
+        rel: "stylesheet",
+        href: appCss,
+      },
     ],
   }),
-  component: RootLayout,
+  shellComponent: RootShell,
+  component: RootComponent,
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
 });
 
-function RootLayout() {
-  const [startProtection, setStartProtection] = useState(false);
+function RootShell({ children }: { children: ReactNode }) {
+  return (
+    <html lang="pt-BR" className="dark">
+      <head>
+        <HeadContent />
+      </head>
+      <body className="custom-scrollbar selection:bg-primary/30 bg-black text-white">
+        {children}
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+  const { startProtection } = useDevToolsProtection();
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-        (e.ctrlKey && e.key === "U")
-      ) {
-        e.preventDefault();
-      }
-    };
-
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("contextmenu", handleContextMenu);
-
-    const timer = setTimeout(() => {
-      setStartProtection(true);
-    }, 1500);
-
+    const stopProtection = startProtection();
+    if (localStorage.getItem("HONEYPOT_BANNED") === "true") {
+      logSecurityEvent("honeypot_triggered", { note: "Usuário bloqueado permanentemente retornou" });
+      document.body.innerHTML =
+        "<h1 style='color:red; text-align:center; margin-top:20%'>PERMANENT BAN</h1>";
+      window.location.href = "https://www.fbi.gov/investigate/cyber";
+    }
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("contextmenu", handleContextMenu);
-      clearTimeout(timer);
+      stopProtection();
     };
-  }, []);
-
-  useEffect(() => {
-    if (!startProtection) return;
-
-    let devtoolsOpen = false;
-    const threshold = 160;
-
-    const checkDevTools = () => {
-      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-
-      if ((widthThreshold || heightThreshold) && !devtoolsOpen) {
-        devtoolsOpen = true;
-      }
-    };
-
-    const interval = setInterval(checkDevTools, 1000);
-    return () => clearInterval(interval);
   }, [startProtection]);
 
   return (
