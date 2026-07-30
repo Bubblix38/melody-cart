@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { FixedPlayer } from "@/components/FixedPlayer";
 import { CartDrawer } from "@/components/CartDrawer";
+import { BackgroundThemeProvider } from "@/lib/background-theme";
+import { BackgroundScene } from "@/components/BackgroundScene";
 import { CartProvider } from "@/lib/cart";
 import { AudioPlayerProvider } from "@/lib/audio-player";
 import { Toaster } from "sonner";
@@ -87,26 +89,29 @@ function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AudioPlayerProvider>
-        <CartProvider>
-          {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
-          <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
-            <TopDJMobile />
-          </div>
+      <BackgroundThemeProvider>
+        <AudioPlayerProvider>
+          <CartProvider>
+            {/* Interface Mobile (exibida estritamente em telas de celular por CSS) */}
+            <div className="block md:hidden min-h-screen bg-[#0a0a0f]">
+              <TopDJMobile />
+            </div>
 
-          {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
-          <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
-            <Header />
-            <main className="flex-1 overflow-hidden bg-black relative">
-              <Outlet />
-            </main>
-            <FixedPlayer />
-          </div>
+            {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
+            <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
+              <BackgroundScene />
+              <Header />
+              <main className="flex-1 w-full relative z-10 overflow-hidden">
+                <Outlet />
+              </main>
+              <CartDrawer />
+              <FixedPlayer />
+            </div>
 
-          <CartDrawer />
-          <Toaster position="top-center" richColors theme="dark" />
-        </CartProvider>
-      </AudioPlayerProvider>
+            <Toaster position="top-center" richColors theme="dark" />
+          </CartProvider>
+        </AudioPlayerProvider>
+      </BackgroundThemeProvider>
     </QueryClientProvider>
   );
 }
