@@ -94,10 +94,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      {
-        rel: "stylesheet",
-        href: "/spotify-cloner.css",
-      },
     ],
   }),
   shellComponent: RootShell,
