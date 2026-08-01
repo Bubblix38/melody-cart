@@ -94,6 +94,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      {
+        rel: "stylesheet",
+        href: "/spotify-cloner.css",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -144,20 +148,11 @@ function RootComponent() {
             </div>
 
             {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
-            <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none pt-16 pb-20">
-              <BackgroundScene />
-              <Header />
-              <div className="flex-1 flex w-full h-[calc(100vh-9rem)] overflow-hidden p-2 gap-2 relative z-10">
-                <SpotifySidebar />
-                <main className="flex-1 rounded-lg bg-[#121212] overflow-y-auto custom-scrollbar relative border border-white/5">
-                  <Outlet />
-                </main>
-                <div className="hidden xl:flex shrink-0">
-                  <SpotifyRightSidebar />
-                </div>
-              </div>
+            <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
+              <main className="flex-1 w-full h-full relative z-10 overflow-hidden">
+                <Outlet />
+              </main>
               <CartDrawer />
-              <FixedPlayer />
             </div>
 
             <Toaster position="top-center" richColors theme="dark" />
