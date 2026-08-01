@@ -87,39 +87,24 @@ function Index() {
   };
 
   return (
-    <div ref={containerRef} className="h-full w-full pt-16 pb-20 flex bg-black overflow-hidden p-2 gap-2 text-white font-sans selection:bg-[#1fdf64]/30 select-none">
-      
-      {/* 1. Left Sidebar: Sua Biblioteca */}
-      <div className="hidden lg:flex shrink-0 h-full">
-        <SpotifySidebar />
+    <div ref={containerRef} className="w-full flex-1 flex flex-col relative z-10 font-sans selection:bg-[#1fdf64]/30 select-none">
+      <div>
+        <SpotifyHero 
+          title={spotlightPack.nome || "BRASILIAN ELECTRONIC 2026"}
+          description={spotlightPack.descricao || "baile house • brazilian bass • ginga beats • and everything in between"}
+          imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&h=600&fit=crop"}
+          creator={spotlightPack.dj || "saint hills"}
+          likes="6.832"
+          songsCount={tracks.length > 0 ? tracks.length.toString() : "174"}
+          duration="7h 30min"
+          onPlay={handlePlayHero}
+          onDownload={handleDownloadPack}
+        />
       </div>
 
-      {/* 2. Center Panel: Hero Banner (BRASILIAN ELECTRONIC 2026) & Spotify Track Table */}
-      <main className="flex-1 min-w-0 bg-[#121212] rounded-lg overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col relative z-10 w-full h-full">
-        <div>
-          <SpotifyHero 
-            title={spotlightPack.nome || "BRASILIAN ELECTRONIC 2026"}
-            description={spotlightPack.descricao || "baile house • brazilian bass • ginga beats • and everything in between"}
-            imageUrl={spotlightPack.imagem_url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&h=600&fit=crop"}
-            creator={spotlightPack.dj || "saint hills"}
-            likes="6.832"
-            songsCount={tracks.length > 0 ? tracks.length.toString() : "174"}
-            duration="7h 30min"
-            onPlay={handlePlayHero}
-            onDownload={handleDownloadPack}
-          />
-        </div>
-
-        <div className="flex-1 w-full relative z-20 bg-[#121212]">
-          <SpotifyTrackTable tracks={tracks} pack={spotlightPack} />
-        </div>
-      </main>
-
-      {/* 3. Right Sidebar: Espresso (Remix) - AVLS & Sobre o Artista */}
-      <div className="hidden xl:flex shrink-0 h-full">
-        <SpotifyRightSidebar pack={spotlightPack} />
+      <div className="flex-1 w-full relative z-20 bg-[#121212] p-4">
+        <SpotifyTrackTable tracks={tracks} pack={spotlightPack} />
       </div>
-
     </div>
   );
 }

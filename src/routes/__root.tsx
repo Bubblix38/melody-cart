@@ -19,6 +19,8 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { Toaster } from "@/components/ui/sonner";
 import { FixedPlayer } from "@/components/FixedPlayer";
 import { BackgroundScene } from "@/components/BackgroundScene";
+import { SpotifySidebar } from "@/components/SpotifySidebar";
+import { SpotifyRightSidebar } from "@/components/SpotifyRightSidebar";
 import TopDJMobile from "@/components/mobile/TopDJMobile";
 import appCss from "@/styles.css?url";
 
@@ -142,12 +144,18 @@ function RootComponent() {
             </div>
 
             {/* Interface Desktop (exibida estritamente em telas grandes por CSS) */}
-            <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none">
+            <div className="hidden md:flex h-screen w-screen overflow-hidden flex-col bg-black select-none pt-16 pb-20">
               <BackgroundScene />
               <Header />
-              <main className="flex-1 w-full relative z-10 overflow-hidden">
-                <Outlet />
-              </main>
+              <div className="flex-1 flex w-full h-[calc(100vh-9rem)] overflow-hidden p-2 gap-2 relative z-10">
+                <SpotifySidebar />
+                <main className="flex-1 rounded-lg bg-[#121212] overflow-y-auto custom-scrollbar relative border border-white/5">
+                  <Outlet />
+                </main>
+                <div className="hidden xl:flex shrink-0">
+                  <SpotifyRightSidebar />
+                </div>
+              </div>
               <CartDrawer />
               <FixedPlayer />
             </div>
